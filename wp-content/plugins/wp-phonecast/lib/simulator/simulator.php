@@ -55,14 +55,33 @@ class wppc_simulator{
 	}
 
 	public static function settings_panel(){
+
+		$appli_url = plugins_url('appli' , dirname(dirname(__FILE__)) );
+		
+		$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api/synchronization';
+		
 		?>
 			<div class="wrap">
 				<?php screen_icon('generic') ?>
 				<h2><?php _e('Navigation') ?></h2>
 				
-				<div style="background-image:url('<?php echo plugins_url('images/iphone5.png' , dirname(dirname(__FILE__)) ) ?>');background-repeat:no-repeat;margin: 0px 0px 0px 0px;padding: 145px 0px 0px 27px;width:375px;height:690px;">
-					<iframe src="<?php echo plugins_url('appli' , dirname(dirname(__FILE__)) ) ?>" width="320" height="550"></iframe>
+				<style>
+					#simulator{ float:left; background-image:url('<?php echo plugins_url('images/iphone5.png' , dirname(dirname(__FILE__)) ) ?>');background-repeat:no-repeat;margin: 0px 0px 0px 0px;padding: 145px 0px 0px 27px;width:375px;height:690px; }
+					#debug-infos{ float:left; }
+				</style>
+				
+				<div id="simulator">
+					<iframe src="<?php echo $appli_url ?>" width="320" height="550"></iframe>
 				</div>
+				
+				<div id="debug-infos">
+					<h3><?php _e('Preview in browser') ?></h3>
+					<a href="<?php echo $appli_url ?>">Preview</a>
+					
+					<h3><?php _e('Web services') ?></h3>
+					<a href="<?php echo $wp_ws_url ?>"><?php echo $wp_ws_url ?></a>
+				</div>
+				
 			</div>
 		<?php
 	}
