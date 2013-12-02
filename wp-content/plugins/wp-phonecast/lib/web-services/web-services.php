@@ -33,7 +33,8 @@ class WppcWebServices{
 					$web_service_slug = $wp_query->query_vars['wppc_slug'];
 					if( self::web_service_exists($web_service_slug) ){
 						if( self::check_token($web_service_slug) ){
-							self::exit_handle_request($web_service_slug,$wp_query->query_vars['wppc_action'],$wp_query->query_vars['wppc_id']);
+							$id = isset($wp_query->query_vars['wppc_id']) ? $wp_query->query_vars['wppc_id'] : 0;
+							self::exit_handle_request($web_service_slug,$wp_query->query_vars['wppc_action'],$id);
 						}else{
 							self::exit_sending_error(__('Wrong security token'));
 						}
@@ -181,22 +182,23 @@ class WppcWebServices{
 	
 		//Simulate delay :
 		//time_nanosleep(rand(0,1), (floatval(rand(20,100))/100) * 1000000000);
+		sleep(2);
 	
 		if( $service_answer !== null ){
-			self::exit_sending_answer($service_answer,$service);
+			self::exit_sending_answer($service_answer,$service_slug);
 		}
 	
 		exit(__('Error : Web service not recognised'));
 	}
 	
-	public function build_result_info($status=1,$message='',$service=array()){
+	public function build_result_info($status=1,$message='',$service_slug=''){
 	
 		$result_info = (object)array(
 				'status' => !empty($status) ? 1 : 0,
 				'message' => $message
 		);
 	
-		$result_info = apply_filters('mrlws_build_result_info',$result_info,$status,$message,$service);
+		$result_info = apply_filters('mrlws_build_result_info',$result_info,$status,$message,$service_slug);
 	
 		return $result_info;
 	}
@@ -208,7 +210,7 @@ class WppcWebServices{
 		exit();
 	}
 	
-	private function build_final_answer($service_answer, $service){
+	private function build_final_answer($service_answer, $service_slug){
 		$final_answer = null;
 	
 		$result_info = array();
@@ -223,12 +225,12 @@ class WppcWebServices{
 		}
 	
 		if( !empty($error) ){
-			$result_info = self::build_result_info(0,$error,$service);
+			$result_info = self::build_result_info(0,$error,$service_slug);
 		}else{
-			$result_info = self::build_result_info(1,'',$service);
+			$result_info = self::build_result_info(1,'',$service_slug);
 		}
 	
-		$result_attribute = self::get_result_attribute($result_info,$service_answer,$service);
+		$result_attribute = self::get_result_attribute($result_info,$service_answer,$service_slug);
 	
 		if( is_array($service_answer) ){
 			$service_answer = (object)array('items'=>$service_answer,$result_attribute=>$result_info);
@@ -247,13 +249,13 @@ class WppcWebServices{
 		return array('answer'=>$final_answer,'timestamp'=>$timestamp);
 	}
 	
-	private function exit_sending_answer($service_answer, $service, $type = 'json'){
+	private function exit_sending_answer($service_answer, $service_slug, $type = 'json'){
 	
-		$final_answer_raw = self::build_final_answer($service_answer, $service);
+		$final_answer_raw = self::build_final_answer($service_answer, $service_slug);
 		$final_answer = json_encode($final_answer_raw['answer']);
 	
 		if( self::cache_on() ){
-			WppcCache::cache_web_service_result(self::get_web_service_cache_id($service), $final_answer, $final_answer_raw['timestamp']);
+			WppcCache::cache_web_service_result(self::get_web_service_cache_id($service_slug), $final_answer, $final_answer_raw['timestamp']);
 		}
 	
 		if( !WP_DEBUG ){
@@ -290,8 +292,8 @@ class WppcWebServices{
 		exit();
 	}
 	
-	private static function get_result_attribute($result_info=null,$service_answer=array(),$service=array()){
-		return apply_filters('mrlws_result_attribute','result',$result_info,$service_answer,$service);
+	private static function get_result_attribute($result_info=null,$service_answer=array(),$service_slug=''){
+		return apply_filters('mrlws_result_attribute','result',$result_info,$service_answer,$service_slug);
 	}
 	
 	//TODO_WPPC

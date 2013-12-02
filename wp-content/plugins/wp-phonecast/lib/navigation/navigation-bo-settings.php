@@ -47,6 +47,7 @@ class wppc_navigation{
 					</thead>
 					<tbody>
 					<?php if( !empty($nav_items) ): ?>
+						<?php $i = 0 ?>
 						<?php foreach($nav_items as $component_slug => $nav_item): ?>
 							<?php $alternate_class = $i++%2 ? '' : 'class="alternate"' ?>
 							<?php $component = WppcComponentsStorage::get_component($component_slug) ?>

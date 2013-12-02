@@ -51,6 +51,7 @@ class WppcComponentsBoSettings{
 				</thead>
 				<tbody>
 				<?php if( !empty($components) ): ?>
+					<?php $i = 0 ?>
 					<?php foreach($components as $id => $component): ?>
 						<?php $alternate_class = $i++%2 ? '' : 'class="alternate"' ?>
 						<tr <?php echo $alternate_class ?>>
