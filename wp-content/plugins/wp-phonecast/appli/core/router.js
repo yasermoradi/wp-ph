@@ -41,7 +41,7 @@ define(function (require) {
 	            	  		});
 	        				require(["core/views/archive"],function(ArchiveView){
 	        					App.setCurrentPage('archive',component_id);
-	        					RegionManager.show(new ArchiveView({posts:items,title:"Archive "+ component.get('label') +" : "+ data.total + " articles"}));
+	        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
 	        				});
         				});
         				break;

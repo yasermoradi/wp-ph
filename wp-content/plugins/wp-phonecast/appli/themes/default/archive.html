@@ -1,6 +1,6 @@
 <div class="wrap">
 	<div class="topcoat-list">
-	  <h3 class="topcoat-list__header"><%= title %></h3>
+	  <h3 class="topcoat-list__header"><%= title %><% total > 0 ? print(' - ' + total) : print(' - Aucun') %> article<% total > 1 ? print('s') : '' %></h3>
 	  <% if(posts.length){ %>
 		  <ul class="topcoat-list__container">
 		  	<% _.each( posts, function( post ){ %>
@@ -18,7 +18,9 @@
 						<% } %>
 						<span class="title"><%= post.title %></span>
 						<span class="date">Le <%= day +'/'+ month +'/'+ year %></span>
-						<span class="comments"><% post.nb_comments > 0 ? print(post.nb_comments) : print('Aucun') %> commentaire<% post.nb_comments > 1 ? print('s') : '' %></span>
+						<% if( post.nb_comments > 0 ){ %>
+							<span class="comments"><%= post.nb_comments %> commentaire<% post.nb_comments > 1 ? print('s') : '' %></span>
+						<% } %>
 						<p><%= post.excerpt %></p>
 					</a>
 					<div style="clear:both"></div>

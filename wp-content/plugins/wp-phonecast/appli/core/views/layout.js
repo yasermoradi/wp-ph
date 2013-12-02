@@ -5,6 +5,7 @@ define(function (require) {
     var $                   = require('jquery'),
         _                   = require('underscore'),
         Backbone            = require('backbone'),
+        Config              = require('root/config'),
         Tpl                 = require('text!theme/layout.html');
 
     return Backbone.View.extend({
@@ -14,7 +15,7 @@ define(function (require) {
         },
 
         render : function() {
-        	var renderedContent = this.template({ menu : '<div id="app-menu"></div>', content : '<div id="app-container"></div>' });
+        	var renderedContent = this.template({ title:Config.app_title ,menu : '<div id="app-menu"></div>', content : '<div id="app-container"></div>' });
             $(this.el).html(renderedContent); 
             return this;
         }

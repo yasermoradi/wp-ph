@@ -27,6 +27,7 @@ class wppc_simulator{
 				case 'config.js':
 					$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api';
 					$theme = 'default';
+					$app_title = get_bloginfo('name');
 					
 					header("Content-type: text/javascript;  charset=utf-8");
 					?>
@@ -36,7 +37,8 @@ class wppc_simulator{
 					
 					    return {
 							wp_ws_url : '<?php echo $wp_ws_url ?>',
-							theme : '<?php echo $theme ?>'
+							theme : '<?php echo $theme ?>',
+							app_title : "<?php echo $app_title ?>"
 						};
 					
 					});
@@ -56,7 +58,7 @@ class wppc_simulator{
 
 	public static function settings_panel(){
 
-		$appli_url = plugins_url('appli' , dirname(dirname(__FILE__)) );
+		$appli_url = plugins_url('appli' , dirname(dirname(__FILE__)) ) .'/index.html';
 		
 		$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api/synchronization';
 		

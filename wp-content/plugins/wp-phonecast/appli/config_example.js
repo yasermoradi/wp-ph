@@ -4,7 +4,8 @@ define(function (require) {
 
     return {
 		wp_ws_url : 'http://local.wp-to-mobile.com/phonecast-api',
-		theme : 'default'
+		theme : 'default',
+		app_title : 'Mon app'
 	};
 
 });

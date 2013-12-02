@@ -21,10 +21,11 @@ define(function (require) {
     		this.posts.on('reset', this.render);
     		
     		this.title = args.title;
+    		this.total = args.total;
         },
 
         render : function() {
-        	var renderedContent = this.template({ posts : this.posts.toJSON(), title: this.title, Functions : ThemeFunctions });
+        	var renderedContent = this.template({ posts : this.posts.toJSON(), title: this.title, total:this.total, Functions : ThemeFunctions });
             $(this.el).html(renderedContent); 
             return this;
         }
