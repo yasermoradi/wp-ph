@@ -36,9 +36,9 @@ require(['root/config'],function(Config){
 
 	  $(document).ready(function() { 
 		  
-		  RegionManager.buildHead();
-		  
 		  RegionManager.startWaiting();
+		  
+		  RegionManager.buildHead();
 		  
 		  App.initialize();
 		  
@@ -66,7 +66,7 @@ require(['root/config'],function(Config){
 		  function(){
 			  console.log("Sync error");
 		  },
-		  false
+		  false //true to force refresh local storage at each app launch.
 		  );
 	  });
 	    

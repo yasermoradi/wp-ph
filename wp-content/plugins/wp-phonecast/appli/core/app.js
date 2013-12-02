@@ -47,8 +47,6 @@ define(function (require) {
 	 
 	  app.initialize = function(){
 		  
-		  RegionManager.startWaiting();
-		  
 		  _.each(initializers, function(initializer,index){
 			  if( initializer.wait ){
 				  wait_events.push(index);
@@ -74,8 +72,6 @@ define(function (require) {
 				  initializer.callback.call(initializer.obj);
 			  }
 		  });
-		  
-		  RegionManager.stopWaiting();
 		  
 	  };
 	  

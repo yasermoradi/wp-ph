@@ -21,7 +21,7 @@ define(function (require) {
 		
 		this.unbind(); // this will unbind all listeners to events from this view. This is probably not necessary because this view will be garbage collected.
 		this.remove(); // uses the default Backbone.View.remove() method which removes this.el from the DOM and removes DOM events.
-	}
+	};
 	
 	var RegionManager = (function (Backbone, $, _, LayoutView) {
 	    
@@ -120,17 +120,9 @@ define(function (require) {
 	    	
 	    };
 	    
-	    var closeDialog = function(view){
-	    	if( view ){
-	    		if( view.close ){
-	        		view.close();
-	        	}
-	    	}
-	    };
-	    
-	    region.show = function(view,no_waiting) {
+	    region.show = function(view,force_no_waiting) {
 	    		
-	    	var no_waiting = no_waiting != undefined && no_waiting == true;
+	    	var no_waiting = force_no_waiting != undefined && force_no_waiting == true;
 
 	    	if( !view.isStatic || !$(view.el).html().length ){
 
