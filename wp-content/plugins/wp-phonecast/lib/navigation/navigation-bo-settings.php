@@ -95,12 +95,15 @@ class wppc_navigation{
 			}
 		}
 		
-		if( !$edit && !empty($components) ){
-			$first_component = reset($components);
-			$navigation_item = new WppcNavigationItem('',0);
+		$navigation_item_id = '';
+		if( !$edit ){
+			if( !$no_components ){
+				$navigation_item = new WppcNavigationItem('',0);
+				$navigation_item_id = $navigation_item->component_slug;
+			}
+		}else{
+			$navigation_item_id = $navigation_item->component_slug;
 		}
-		
-		$navigation_item_id = $navigation_item->component_slug; 
 		
 		?>
 		<?php if( !$no_components ): ?>
@@ -108,28 +111,38 @@ class wppc_navigation{
 				<table class="form-table">
 					<?php if( !$edit ): ?>
 						<tr valign="top">
-							<th scope="row"><?php _e('Component') ?></th>
-					        <td>
-					        	<select name="component_slug">
-					        		<?php foreach($components as $component): ?>
-					        			<?php $selected = $component->slug == $navigation_item_id ? 'selected="selected"' : '' ?>
-					        			<option value="<?php echo $component->slug ?>" <?php echo $selected ?>><?php echo $component->label ?></option>
-					        		<?php endforeach ?>
-					        	</select>
-					        </td>
+							<?php if( !empty($components) ): ?>
+								<th scope="row"><?php _e('Component') ?></th>
+						        <td>
+						        	<select name="component_slug">
+						        		<?php foreach($components as $component): ?>
+						        			<?php $selected = $component->slug == $navigation_item_id ? 'selected="selected"' : '' ?>
+						        			<option value="<?php echo $component->slug ?>" <?php echo $selected ?>><?php echo $component->label ?></option>
+						        		<?php endforeach ?>
+						        	</select>
+						        </td>
+						     <?php else: ?>
+						     	<td>
+					        		<?php _e('All components are already in navigation!') ?>
+					        	</td>
+					        <?php endif ?>
 					    </tr>
 					<?php else: ?>
 						<input type="hidden" name="component_slug" value="<?php echo $navigation_item_id ?>" />
 					<?php endif ?>
-				    <tr valign="top">
-						<th scope="row"><?php _e('Position') ?></th>
-				        <td><input type="text" name="position" value="<?php echo $navigation_item->position ?>" /></td>
-				    </tr>
+					<?php if( $edit || !empty($components) ): ?>
+					    <tr valign="top">
+							<th scope="row"><?php _e('Position') ?></th>
+					        <td><input type="text" name="position" value="<?php echo $navigation_item->position ?>" /></td>
+					    </tr>
+					<?php endif ?>
 				</table>
 				<input type="hidden" name="<?php echo $edit ? 'edit' : 'new' ?>_item_submitted" value="<?php echo $navigation_item_id ?>"/>
 				<p class="submit">
 					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" <?php echo !$edit ? 'id="cancel-new-item"' : '' ?>><?php _e('Cancel') ?></a>&nbsp;
-					<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php echo $edit ? __('Save Changes') : __('Save new item') ?>">
+					<?php if( $edit || !empty($components) ): ?>
+						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php echo $edit ? __('Save Changes') : __('Save new item') ?>">
+					<?php endif ?>
 				</p>
 			</form>
 		<?php else: ?>

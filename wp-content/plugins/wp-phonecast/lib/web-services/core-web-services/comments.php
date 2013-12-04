@@ -51,13 +51,15 @@ class WppcWebServiceComments{
 		
 		$comment_data['date'] = strtotime($comment_data['date']);
 	
+		$post_id = $comment_data['post_id'];
+		
 		$to_remove = array('karma','approved','agent','type','date_gmt','author_ip',
 				 		   'author_email','author_url','parent','user_id','post_id');
 		foreach($to_remove as $field){
 			unset($comment_data[$field]);
 		}
-	
-		$comment_data = apply_filters('wppc_comments_data',$comment_data,$comment_data_raw,$comment_data_raw->post_id);
+		
+		$comment_data = apply_filters('wppc_comments_data',$comment_data,$comment_data_raw,$post_id);
 		
 		return $comment_data;
 	}
