@@ -30,34 +30,38 @@ define(function (require) {
         component: function (component_id) {
         	require(["core/app"],function(App){
         		var component = App.components.get(component_id);
-        		switch(component.get('type')){
-        			case 'posts-list':
-        				var data = component.get('data');
-        				require(["core/models/items"],function(Items){
-	        				var items = new Items.ItemsSlice();
-	        				var global = App.globals[component.get('global')];
-	        				_.each(data.ids,function(post_id, index){
-	        					items.add(global.get(post_id));
-	            	  		});
-	        				require(["core/views/archive"],function(ArchiveView){
-	        					App.setCurrentPage('archive',component_id);
-	        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
-	        				});
-        				});
-        				break;
-        			case 'page':
-        				var data = component.get('data');
-        				var global = App.globals[component.get('global')];
-        				if( global ){
-        					var page = global.get(data.id);
-        					if( page ){
-		        				App.setCurrentPage('page',component_id,data.id);
-		        				require(["core/views/single"],function(SingleView){
-		        					RegionManager.show(new SingleView({post:page}));
+        		if( component ){
+	        		switch(component.get('type')){
+	        			case 'posts-list':
+	        				var data = component.get('data');
+	        				require(["core/models/items"],function(Items){
+		        				var items = new Items.ItemsSlice();
+		        				var global = App.globals[component.get('global')];
+		        				_.each(data.ids,function(post_id, index){
+		        					items.add(global.get(post_id));
+		            	  		});
+		        				require(["core/views/archive"],function(ArchiveView){
+		        					App.setCurrentPage('archive',component_id);
+		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
 		        				});
-        					}
-        				}
-        				break;
+	        				});
+	        				break;
+	        			case 'page':
+	        				var data = component.get('data');
+	        				var global = App.globals[component.get('global')];
+	        				if( global ){
+	        					var page = global.get(data.id);
+	        					if( page ){
+			        				App.setCurrentPage('page',component_id,data.id);
+			        				require(["core/views/single"],function(SingleView){
+			        					RegionManager.show(new SingleView({post:page}));
+			        				});
+	        					}
+	        				}
+	        				break;
+	        		}
+        		}else{
+        			App.router.default_route();
         		}
         	});
         },
@@ -73,8 +77,12 @@ define(function (require) {
 		        	if( post ){
 		        		App.setCurrentPage('single','',post_id);
 		        		RegionManager.show(new SingleView({post:post}));
-		        	}
-	        	}
+		        	}else{
+	        			App.router.default_route();
+	        		}
+	        	}else{
+        			App.router.default_route();
+        		}
         	});
         },
         
@@ -90,6 +98,7 @@ define(function (require) {
 		        	},
 		        	function(error){
 		        		console.log('App.getPostComments Error',error);
+		        		RegionManager.stopWaiting();
 		        	}
 		        );
         	});

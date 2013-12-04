@@ -17,8 +17,6 @@ define(function (require) {
             _.bindAll(this,'render');
             
     		this.posts = args.posts;
-    		this.posts.on('add', this.render);
-    		this.posts.on('reset', this.render);
     		
     		this.title = args.title;
     		this.total = args.total;

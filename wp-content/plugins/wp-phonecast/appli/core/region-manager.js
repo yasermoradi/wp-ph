@@ -57,17 +57,21 @@ define(function (require) {
 	    	}
 	    };
 	    
-	    region.buildMenu = function(){
-	    	if( menuView === null ){
+	    region.buildMenu = function(force_reload){
+	    	
+	    	force_reload = (force_reload!=undefined && force_reload);
+	    	
+	    	if( menuView === null || force_reload ){
 	    		menuView = new MenuView();
 	    		require(['core/app'],function(App){
+	    			menuView.resetAll();
 		    		App.navigation.each(function(element, index){
 		    			var component = App.components.get(element.get('component_id'));
 		    			if( component ){
 		    				menuView.addItem(component.get('id'),component.get('type'),component.get('label'));
 		    			}
 		   		  	});
-		    		showMenu();
+		    		showMenu(force_reload);
 	    		});
 	   		  	
 	    	}

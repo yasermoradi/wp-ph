@@ -4,6 +4,8 @@ require.config({
 	 
     baseUrl: 'vendor',
 
+    waitSeconds: 10,
+    
     paths: {
         core: '../core',
         root: '..'
@@ -49,11 +51,14 @@ require(['root/config'],function(Config){
 			  RegionManager.buildMenu();
 			  
 			  App.router = new Router();
-			  var first_nav_component_id = App.navigation.first().get('component_id');
-			  App.router.setDefaultRoute('#component-'+ first_nav_component_id);
+			  App.resetDefaultRoute();
 			  
 			  require(['theme/js/functions'],
 					  function(){ 
+				  		//Refresh at app launch : as the theme is now loaded, use theme-app :
+				  		require(['core/theme-app'],function(ThemeApp){
+				  			ThemeApp.refresh();
+				  		});
 				  		Backbone.history.start();
 				  		RegionManager.stopWaiting();
 			  		  },

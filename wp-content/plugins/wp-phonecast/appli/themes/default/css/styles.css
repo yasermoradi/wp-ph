@@ -16,6 +16,10 @@ body:not(.snapjs-left) .snap-drawer-left{
 	display:none;
 }
 
+img{
+	max-width:327px;
+}
+
 .menu-button{
 	margin-top: 0.6rem;
 }
@@ -63,6 +67,12 @@ body:not(.snapjs-left) .snap-drawer-left{
 	background-color: #dfe2e2;
 }
 
+#single a.comments{
+	display: block;
+	margin: 1em 0 1.5em;
+	text-align: right;
+}
+
 #single-content img{
     height: 218px;
     margin:0 auto 1em;
@@ -86,3 +96,25 @@ body:not(.snapjs-left) .snap-drawer-left{
 .refreshing {
     -webkit-animation: rotating 2s linear infinite;
 }
+
+#feedback{
+	padding:1em;
+	background:#ffffe0;
+	text-align:center;
+}
+
+#feedback.error{
+	background:#ffebe8;	
+}
+
+/*
+//Fixed nav test : 
+//(layout.html must change too : get topcoat-navigation-bar out of id="content" because it conflicts with snap.css)
+.topcoat-navigation-bar {
+	position: fixed;
+	width: 100%;
+	top:0;
+	right: 0;
+	left: 0;
+	z-index: 1000;
+}*/

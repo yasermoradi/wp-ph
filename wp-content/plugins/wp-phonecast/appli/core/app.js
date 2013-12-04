@@ -77,6 +77,12 @@ define(function (require) {
 	  
 	  app.router = null;
 	  
+	  //Router must be set before calling this resetDefaultRoute :
+	  app.resetDefaultRoute = function(){
+		  var first_nav_component_id = app.navigation.first().get('component_id');
+		  app.router.setDefaultRoute('#component-'+ first_nav_component_id);
+	  };
+	  
 	  var currentPage = {page_type:'',component_id:'',item_id:''};
 	  app.setCurrentPage = function(page_type,component_id,item_id){
 		  currentPage.page_type = page_type;
@@ -113,37 +119,46 @@ define(function (require) {
 		  var token = ''; //getToken();
     	  var ws_url = token +'/synchronization/';
     	  
-		  $.get(Config.wp_ws_url + ws_url, function(data) {
-			  
-			  app.components.reset();
-			  _.each(data.components,function(value, key, list){
-				  app.components.add({id:key,label:value.label,type:value.type,data:value.data,global:value.global});
-			  });
-			  app.components.saveAll();
-			  
-			  app.navigation.reset();
-			  _.each(data.navigation,function(value, key, list){
-				  app.navigation.add({id:key,component_id:key,data:{}});
-			  });
-			  app.navigation.saveAll();
-			  
-			  globals_keys.reset();
-			  _.each(data.globals,function(global, key, list){
-				  var items = new Items.Items({global:key});
-				  items.reset();
-				  _.each(global,function(item, id){
-					  items.add(_.extend({id:id},item));
-				  });
-				  items.saveAll();
-				  app.globals[key] = items;
-				  globals_keys.add({id:key});
-			  });
-			  globals_keys.saveAll();
-			  
-			  console.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
-			  
-			  cb_ok();
-	  	  });
+		  $.ajax({
+				url : Config.wp_ws_url + ws_url, 
+				timeout : 40000,
+				success : function(data) {
+				  
+					  app.components.resetAll();
+					  _.each(data.components,function(value, key, list){
+						  app.components.add({id:key,label:value.label,type:value.type,data:value.data,global:value.global});
+					  });
+					  app.components.saveAll();
+					  
+					  app.navigation.resetAll();
+					  _.each(data.navigation,function(value, key, list){
+						  app.navigation.add({id:key,component_id:key,data:{}});
+					  });
+					  app.navigation.saveAll();
+					  
+					  globals_keys.resetAll();
+					  _.each(data.globals,function(global, key, list){
+						  var items = new Items.Items({global:key});
+						  items.resetAll();
+						  _.each(global,function(item, id){
+							  items.add(_.extend({id:id},item));
+						  });
+						  items.saveAll();
+						  app.globals[key] = items;
+						  globals_keys.add({id:key});
+					  });
+					  globals_keys.saveAll();
+					  
+					  console.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
+
+					  cb_ok();
+				},
+			  	error : function(jqXHR, textStatus, errorThrown){
+			  		var error = {type:'ajax',where:'app::syncWebService',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}};
+			  		cb_error(error);
+			  		vent.trigger('error',error);
+			  	}
+		  });
 	  };
 	  
 	  app.getPostComments = function(post_id,cb_ok,cb_error){
@@ -156,13 +171,16 @@ define(function (require) {
     	  
     	  if( post != undefined ){
 	    	  $.get(Config.wp_ws_url + ws_url, function(data) {
+	    		  console.log('data',data);
 	    		  	_.each(data.items,function(value, key, list){
 	    		  		comments.add(value);
 	    	  		});
 	    		  	cb_ok(comments,post);
 	    	  });
     	  }else{
-    		  cb_error('Post '+ post_id +' not found.');
+    		  var error = {type:'not-found',where:'app::getPostComments',data:{message:'Post '+ post_id +' not found.'}};
+		  	  cb_error(error);
+		  	  vent.trigger('error',error);
     	  }
       };
 	  

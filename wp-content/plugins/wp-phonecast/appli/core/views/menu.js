@@ -16,7 +16,6 @@ define(function (require) {
   	        _.bindAll(this,'render');
   			
   			this.menu = new MenuItems.MenuItems();
-  			//this.menu.on('add', this.render);
   			
   	    },
 
@@ -26,6 +25,10 @@ define(function (require) {
 
   	    addItem : function(id,type,label){
   	    	this.menu.add({id:id,label:label,type:type,link: '#component-'+id});
+  	    },
+  	    
+  	    resetAll : function(){
+  	    	this.menu.reset();
   	    },
   	    
   	    render : function( ) {

@@ -2,8 +2,8 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/snap'],functio
 	
 	var snapper = new Snap({
 	  element: document.getElementById('content'),
-	  disable: 'right,left',
-	  tapToClose : false,
+	  disable: 'right',
+	  tapToClose : true,
 	  touchToDrag : false
 	});
 	
@@ -18,7 +18,9 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/snap'],functio
 	
 	$('#refresh-button').bind('click', function(e){
 		e.preventDefault();
-		App.refresh();
+		App.refresh(function(){
+			$('#feedback').removeClass('error').html('Content updated successfully :)').slideDown();
+		});
 	});
 	
 	App.on('refresh:start',function(){
@@ -29,7 +31,19 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/snap'],functio
 		$('#refresh-button span').removeClass('refreshing');
 	});
 	
+	App.on('error',function(error){
+		$('#feedback').addClass('error').html(error.message).slideDown();
+	});
+	
+	$('#feedback').click(function(e){
+		e.preventDefault();
+		$(this).slideUp();
+	});
+	
 	RegionManager.on('page:showed',function(current_page,view){
+		
+		$("#content").animate({ scrollTop: 0 }, 0);
+		
 		if( current_page.page_type == 'single' ){
 			snapper.close();
 		}
@@ -37,9 +51,9 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/snap'],functio
 			snapper.close();
 		}
 		else if( current_page.page_type == 'archive' ){
-			
+			snapper.close();
 		}
+		
 	});
 	
-	return true;
 });

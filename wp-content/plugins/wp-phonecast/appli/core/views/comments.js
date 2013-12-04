@@ -17,8 +17,6 @@ define(function (require) {
             _.bindAll(this,'render');
             
     		this.comments = args.comments;
-    		this.comments.on('add', this.render);
-    		this.comments.on('reset', this.render);
     		
     		this.post = args.post;
         },

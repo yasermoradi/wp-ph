@@ -17,7 +17,14 @@ define(function (require) {
     		this.localStorage = new Backbone.LocalStorage("Items-"+args.global);
     	},
     	saveAll : function(){
-       	 	this.map(function(item){item.save()});
+       	 	this.map(function(item){item.save();});
+        },
+        resetAll : function(){
+        	var length = this.length; 
+        	for (var i = length - 1; i >= 0; i--) { 
+        		this.at(i).destroy(); 
+        	} 
+        	this.reset();
         }
     });
     

@@ -19,7 +19,14 @@ define(function (require) {
     	localStorage: new Backbone.LocalStorage("Components"),
     	model : Component,
     	saveAll : function(){
-       	 	this.map(function(component){component.save()});
+       	 	this.map(function(component){component.save();});
+        },
+        resetAll : function(){
+        	var length = this.length; 
+        	for (var i = length - 1; i >= 0; i--) { 
+        		this.at(i).destroy(); 
+        	} 
+        	this.reset();
         }
     });
     
