@@ -18,7 +18,7 @@ class wppc_navigation{
 	public static function admin_enqueue_scripts(){
 		global $pagenow, $typenow, $plugin_page;
 		if( $pagenow == 'admin.php' && $plugin_page == self::menu_item ){
-			wp_enqueue_script('wppc_navigation_bo_settings_js',plugins_url('lib/navigation/navigation-bo-settings.js', dirname(dirname(__FILE__))),array('jquery'),WpPhoneCast::resources_version);
+			wp_enqueue_script('wppc_navigation_bo_settings_js',plugins_url('lib/navigation/navigation-bo-settings.js', dirname(dirname(__FILE__))),array('jquery','jquery-ui-sortable'),WpPhoneCast::resources_version);
 		}
 	}
 	
@@ -26,10 +26,12 @@ class wppc_navigation{
 		self::handle_navigation_actions();
 		self::handle_url_messages();
 		$nav_items = WppcNavigationItemsStorage::get_navigation_items();
+		
+		$nav_items_positions = array();
 		?>
 			<div class="wrap">
 				<?php screen_icon('generic') ?>
-				<h2><?php _e('Navigation') ?> <a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add New') ?></a></h2>
+				<h2><?php _e('Navigation') ?> <a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add new component to navigation') ?></a></h2>
 				
 				<?php settings_errors('wppc_navigation_settings') ?>
 				
@@ -38,51 +40,58 @@ class wppc_navigation{
 					<?php self::echo_item_form() ?>
 				</div>
 				
-				<table class="wp-list-table widefat fixed" style="margin-top:15px">
+				<table class="wp-list-table widefat fixed" id="navigation-items-table">
 					<thead>
 						<tr>
-							<th><?php _e('Component') ?></th>
-							<th><?php _e('Position') ?></th>
+							<th><?php _e('Navigation components') ?></th>
 						</tr>
 					</thead>
 					<tbody>
 					<?php if( !empty($nav_items) ): ?>
 						<?php $i = 0 ?>
 						<?php foreach($nav_items as $nav_item_id => $nav_item): ?>
-							<?php $alternate_class = $i++%2 ? '' : 'class="alternate"' ?>
+							<?php $alternate_class = $i++%2 ? '' : 'alternate' ?>
 							<?php $component = WppcComponentsStorage::get_component($nav_item->component_id) ?>
 							<?php if( !empty($component) ): ?>
-								<tr <?php echo $alternate_class ?>>
+								<?php $nav_items_positions[$nav_item_id] = $nav_item->position ?>
+								<tr class="ui-state-default <?php echo $alternate_class ?>" data-id="<?php echo $nav_item_id ?>">
 									<td>
 										<?php echo $component->label ?> (<?php echo $component->slug ?>)
 										<div class="row-actions">
-											<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $nav_item_id ?>"><?php _e('Edit') ?></a> | </span>
 											<span class="trash"><a class="submitdelete" href="<?php echo add_query_arg(array('wppc_action'=>'delete','navigation_item_id'=>$nav_item_id)) ?>" class="delete_item"><?php _e('Delete')?></a></span>
 										</div>
-									</td>
-									<td><?php echo $nav_item->position ?></td>
-								</tr>
-								<tr class="edit-item-wrapper" id="edit-item-wrapper-<?php echo $nav_item_id ?>" style="display:none" <?php echo $alternate_class ?>>
-									<td colspan="2">
-										<?php self::echo_item_form($nav_item) ?>
 									</td>
 								</tr>
 							<?php endif ?>
 						<?php endforeach ?>
 					<?php else: ?>
-						<tr><td colspan="2"><?php _e('No navigation item yet!') ?></td></tr>
+						<tr><td><?php _e('No navigation item yet!') ?></td></tr>
 					<?php endif ?>
 					</tbody>
 				</table>
-			
+				
+				<?php if( !empty($nav_items) && !empty($nav_items_positions) ): ?>
+					<form  method="post" action="<?php echo remove_query_arg('wppc_feedback',add_query_arg(array())) ?>" >
+						<input type="hidden" name="order-items" value="1" />
+						<?php foreach($nav_items_positions as $nav_item_id => $nav_item_position): ?>
+							<input type="hidden" id="position-<?php echo $nav_item_id ?>" name="positions[<?php echo $nav_item_id ?>]" value="<?php echo $nav_item_position ?>" />
+						<?php endforeach ?>
+						<input type="submit" name="submit" id="submit-navigation-orger" class="button button-primary" value="<?php _e('Save navigation order') ?>">
+					</form>
+				<?php endif ?>
+				
+				<style>
+					#navigation-items-table{ margin:15px 0 }
+					.ui-sortable-placeholder{ height: 60px; border-bottom:1px solid #dfdfdf; }
+					.ui-sortable-helper{ width:100%; background:#fff; }
+					.ui-state-default{ cursor:move }
+				</style>
 			</div>
 		<?php
 	}
 	
-	private static function echo_item_form($navigation_item=null){
+	private static function echo_item_form(){
 		
-		$edit = !empty($navigation_item);
-	
 		$components = WppcComponentsStorage::get_components();
 		
 		$no_components = empty($components);
@@ -94,51 +103,37 @@ class wppc_navigation{
 		}
 		
 		$navigation_item_id = 0;
-		if( !$edit ){
-			if( !$no_components ){
-				$navigation_item = new WppcNavigationItem(0,0);
-				$navigation_item_id = 0;
-			}
-		}else{
-			$navigation_item_id = WppcNavigationItemsStorage::get_navigation_item_id($navigation_item);
+		if( !$no_components ){
+			$navigation_item = new WppcNavigationItem(0,0);
 		}
 		
 		?>
 		<?php if( !$no_components ): ?>
 			<form method="post" action="<?php echo remove_query_arg('wppc_feedback',add_query_arg(array())) ?>" id="item-form-<?php echo $navigation_item_id ?>">
 				<table class="form-table">
-					<?php if( !$edit ): ?>
-						<tr valign="top">
-							<?php if( !empty($components) ): ?>
-								<th scope="row"><?php _e('Component') ?></th>
-						        <td>
-						        	<select name="component_id">
-						        		<?php foreach($components as $component_id => $component): ?>
-						        			<option value="<?php echo $component_id ?>"><?php echo $component->label ?></option>
-						        		<?php endforeach ?>
-						        	</select>
-						        </td>
-						     <?php else: ?>
-						     	<td>
-					        		<?php _e('All components are already in navigation!') ?>
-					        	</td>
-					        <?php endif ?>
-					    </tr>
-					<?php else: ?>
-						<input type="hidden" name="component_id" value="<?php echo $navigation_item->component_id ?>" />
-					<?php endif ?>
-					<?php if( $edit || !empty($components) ): ?>
-					    <tr valign="top">
-							<th scope="row"><?php _e('Position') ?></th>
-					        <td><input type="text" name="position" value="<?php echo $navigation_item->position ?>" /></td>
-					    </tr>
-					<?php endif ?>
+					<tr valign="top">
+						<?php if( !empty($components) ): ?>
+							<th scope="row"><?php _e('Component') ?></th>
+					        <td>
+					        	<select name="component_id">
+					        		<?php foreach($components as $component_id => $component): ?>
+					        			<option value="<?php echo $component_id ?>"><?php echo $component->label ?></option>
+					        		<?php endforeach ?>
+					        	</select>
+					        </td>
+					     <?php else: ?>
+					     	<td>
+				        		<?php _e('All components are already in navigation!') ?>
+				        	</td>
+				        <?php endif ?>
+				    </tr>
 				</table>
-				<input type="hidden" name="<?php echo $edit ? 'edit' : 'new' ?>_item_submitted" value="<?php echo $navigation_item_id ?>"/>
+				<input type="hidden" name="position" value="0" />
+				<input type="hidden" name="new_item_submitted" value="1"/>
 				<p class="submit">
-					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" <?php echo !$edit ? 'id="cancel-new-item"' : '' ?>><?php _e('Cancel') ?></a>&nbsp;
-					<?php if( $edit || !empty($components) ): ?>
-						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php echo $edit ? __('Save Changes') : __('Save new item') ?>">
+					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" id="cancel-new-item"><?php _e('Cancel') ?></a>&nbsp;
+					<?php if( !empty($components) ): ?>
+						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Save new item') ?>">
 					<?php endif ?>
 				</p>
 			</form>
@@ -153,10 +148,7 @@ class wppc_navigation{
 	private static function handle_navigation_actions(){
 		//TODO : add nonce!
 	
-		if( isset($_POST['new_item_submitted']) || !empty($_POST['edit_item_submitted']) ){
-	
-			$edit = !empty($_POST['edit_item_submitted']);
-			$edit_id = $edit ? $_POST['edit_item_submitted'] : 0;
+		if( isset($_POST['new_item_submitted']) && $_POST['new_item_submitted'] == 1 ){
 	
 			$nav_item_component_id = $_POST['component_id'];
 			$nav_item_position = !empty($_POST['position']) && is_numeric($_POST['position']) ? $_POST['position'] : 0;
@@ -171,23 +163,23 @@ class wppc_navigation{
 				return;
 			}
 			
-			if( !$edit ){
-				if( WppcNavigationItemsStorage::navigation_item_exists_by_component($nav_item_component_id) ){
-					add_settings_error('wppc_navigation_settings','already-exists',__('This component is already in navigation!'),'error');
-					return;
-				}
+			if( WppcNavigationItemsStorage::navigation_item_exists_by_component($nav_item_component_id) ){
+				add_settings_error('wppc_navigation_settings','already-exists',__('This component is already in navigation!'),'error');
+				return;
 			}
 				
 			$navigation_item = new WppcNavigationItem($nav_item_component_id, $nav_item_position);
 			WppcNavigationItemsStorage::add_or_update_navigation_item($navigation_item);
 				
-			if( $edit ){
-				add_settings_error('wppc_navigation_settings','edited',__('Navigation updated successfuly'),'updated');
-			}else{
-				add_settings_error('wppc_navigation_settings','created',__('New navigation item created successfuly'),'updated');
-			}
-				
+			add_settings_error('wppc_navigation_settings','created',__('New navigation item created successfuly'),'updated');
 	
+		}elseif( isset($_POST['order-items']) && $_POST['order-items'] == 1 ){
+
+			if( !empty($_POST['positions']) && is_array($_POST['positions']) ){
+				WppcNavigationItemsStorage::update_items_positions($_POST['positions']);
+				add_settings_error('wppc_navigation_settings','order-updated',__('Navigation order updated successfuly'),'updated');
+			}
+		
 		}elseif( !empty($_GET['wppc_action']) ){
 			$action = $_GET['wppc_action'];
 			switch($action){

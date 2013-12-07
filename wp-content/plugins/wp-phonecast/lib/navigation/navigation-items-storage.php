@@ -102,6 +102,18 @@ class WppcNavigationItemsStorage{
 		return $nav_item_id === false ? 0 : $nav_item_id;
 	}
 	
+	public static function update_items_positions($items_positions){
+		if( !empty($items_positions) ){
+			$navigation_items = self::get_navigation_items_raw();
+			foreach($items_positions as $nav_item_id => $nav_item_position){
+				if( array_key_exists($nav_item_id,$navigation_items) ){
+					$navigation_items[$nav_item_id]->set_position($nav_item_position);
+				}
+			}
+			self::update_navigation_items($navigation_items);
+		}
+	}
+	
 	private static function update_navigation_items($navigation_items){
 		$navigation_items = self::order_items($navigation_items);
 		$current_navigation_items = get_option( self::option_id );
