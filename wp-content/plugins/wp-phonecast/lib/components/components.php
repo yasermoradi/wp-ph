@@ -8,23 +8,23 @@ require_once(dirname(__FILE__) .'/components-types.php');
 class WppcComponents{
 	
 	public static function get_components_synchro_data(){
-		$components_data = array();
 		
-		$components_data['navigation'] = WppcNavigationItemsStorage::get_navigation_items();
-
-		$components = WppcComponentsStorage::get_components();
+		$components = array();
+		$components_raw = WppcComponentsStorage::get_components();
 		$globals = array();
-		$components_data['components'] = array();
-		$components_data['globals'] = array();
-		foreach($components as $component){
+		foreach($components_raw as $component){
 			$component_data = WppcComponentsTypes::get_component_data($component,$globals);
 			$globals = $component_data['globals'];
-			$components_data['components'][$component->slug] = $component_data['specific'];
-			 
+			$components[$component->slug] = $component_data['specific'];
 		}
 		
+		$navigation_items = WppcNavigationItemsStorage::get_navigation_indexed_by_components_slugs(true);
+		
+		$components_data = array();
+		$components_data['navigation'] = $navigation_items;
+		$components_data['components'] = $components;
 		$components_data['globals'] = $globals;
-				
+		
 		return $components_data;
 	}
 	

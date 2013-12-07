@@ -48,21 +48,21 @@ class wppc_navigation{
 					<tbody>
 					<?php if( !empty($nav_items) ): ?>
 						<?php $i = 0 ?>
-						<?php foreach($nav_items as $component_slug => $nav_item): ?>
+						<?php foreach($nav_items as $nav_item_id => $nav_item): ?>
 							<?php $alternate_class = $i++%2 ? '' : 'class="alternate"' ?>
-							<?php $component = WppcComponentsStorage::get_component($component_slug) ?>
+							<?php $component = WppcComponentsStorage::get_component($nav_item->component_id) ?>
 							<?php if( !empty($component) ): ?>
 								<tr <?php echo $alternate_class ?>>
 									<td>
 										<?php echo $component->label ?> (<?php echo $component->slug ?>)
 										<div class="row-actions">
-											<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $component_slug ?>"><?php _e('Edit') ?></a> | </span>
-											<span class="trash"><a class="submitdelete" href="<?php echo add_query_arg(array('wppc_action'=>'delete','navigation_item_id'=>$component_slug)) ?>" class="delete_item"><?php _e('Delete')?></a></span>
+											<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $nav_item_id ?>"><?php _e('Edit') ?></a> | </span>
+											<span class="trash"><a class="submitdelete" href="<?php echo add_query_arg(array('wppc_action'=>'delete','navigation_item_id'=>$nav_item_id)) ?>" class="delete_item"><?php _e('Delete')?></a></span>
 										</div>
 									</td>
 									<td><?php echo $nav_item->position ?></td>
 								</tr>
-								<tr class="edit-item-wrapper" id="edit-item-wrapper-<?php echo $component_slug ?>" style="display:none" <?php echo $alternate_class ?>>
+								<tr class="edit-item-wrapper" id="edit-item-wrapper-<?php echo $nav_item_id ?>" style="display:none" <?php echo $alternate_class ?>>
 									<td colspan="2">
 										<?php self::echo_item_form($nav_item) ?>
 									</td>
@@ -87,22 +87,20 @@ class wppc_navigation{
 		
 		$no_components = empty($components);
 		
-		$navigation_items = WppcNavigationItemsStorage::get_navigation_items();
-		$navigation_items_slugs = array_keys($navigation_items);
-		foreach($components as $k => $component){
-			if( in_array($component->slug,$navigation_items_slugs) ){
-				unset($components[$k]);
+		foreach(array_keys($components) as $component_id){
+			if( WppcNavigationItemsStorage::component_in_navigation($component_id) ){
+				unset($components[$component_id]);
 			}
 		}
 		
-		$navigation_item_id = '';
+		$navigation_item_id = 0;
 		if( !$edit ){
 			if( !$no_components ){
-				$navigation_item = new WppcNavigationItem('',0);
-				$navigation_item_id = $navigation_item->component_slug;
+				$navigation_item = new WppcNavigationItem(0,0);
+				$navigation_item_id = 0;
 			}
 		}else{
-			$navigation_item_id = $navigation_item->component_slug;
+			$navigation_item_id = WppcNavigationItemsStorage::get_navigation_item_id($navigation_item);
 		}
 		
 		?>
@@ -114,10 +112,9 @@ class wppc_navigation{
 							<?php if( !empty($components) ): ?>
 								<th scope="row"><?php _e('Component') ?></th>
 						        <td>
-						        	<select name="component_slug">
-						        		<?php foreach($components as $component): ?>
-						        			<?php $selected = $component->slug == $navigation_item_id ? 'selected="selected"' : '' ?>
-						        			<option value="<?php echo $component->slug ?>" <?php echo $selected ?>><?php echo $component->label ?></option>
+						        	<select name="component_id">
+						        		<?php foreach($components as $component_id => $component): ?>
+						        			<option value="<?php echo $component_id ?>"><?php echo $component->label ?></option>
 						        		<?php endforeach ?>
 						        	</select>
 						        </td>
@@ -128,7 +125,7 @@ class wppc_navigation{
 					        <?php endif ?>
 					    </tr>
 					<?php else: ?>
-						<input type="hidden" name="component_slug" value="<?php echo $navigation_item_id ?>" />
+						<input type="hidden" name="component_id" value="<?php echo $navigation_item->component_id ?>" />
 					<?php endif ?>
 					<?php if( $edit || !empty($components) ): ?>
 					    <tr valign="top">
@@ -161,27 +158,27 @@ class wppc_navigation{
 			$edit = !empty($_POST['edit_item_submitted']);
 			$edit_id = $edit ? $_POST['edit_item_submitted'] : 0;
 	
-			$nav_item_component_slug = $_POST['component_slug'];
+			$nav_item_component_id = $_POST['component_id'];
 			$nav_item_position = !empty($_POST['position']) && is_numeric($_POST['position']) ? $_POST['position'] : 0;
 				
-			if( empty($nav_item_component_slug) ){
+			if( empty($nav_item_component_id) ){
 				add_settings_error('wppc_navigation_settings','no-component-slug',__('You must choose a component!'),'error');
 				return;
 			}
 				
-			if( !WppcComponentsStorage::component_exists($nav_item_component_slug) ){
+			if( !WppcComponentsStorage::component_exists($nav_item_component_id) ){
 				add_settings_error('wppc_navigation_settings','component-doesnt-exist',__("This component doesn't exist!"),'error');
 				return;
 			}
 			
 			if( !$edit ){
-				if( WppcNavigationItemsStorage::navigation_item_exists($nav_item_component_slug) ){
+				if( WppcNavigationItemsStorage::navigation_item_exists_by_component($nav_item_component_id) ){
 					add_settings_error('wppc_navigation_settings','already-exists',__('This component is already in navigation!'),'error');
 					return;
 				}
 			}
 				
-			$navigation_item = new WppcNavigationItem($nav_item_component_slug, $nav_item_position);
+			$navigation_item = new WppcNavigationItem($nav_item_component_id, $nav_item_position);
 			WppcNavigationItemsStorage::add_or_update_navigation_item($navigation_item);
 				
 			if( $edit ){
@@ -195,9 +192,9 @@ class wppc_navigation{
 			$action = $_GET['wppc_action'];
 			switch($action){
 				case 'delete':
-					$id = $_GET['navigation_item_id'];
-					if( $component = WppcNavigationItemsStorage::navigation_item_exists($id) ){
-						if( !WppcNavigationItemsStorage::delete_navigation_item($id) ){
+					$nav_item_id = $_GET['navigation_item_id'];
+					if( WppcNavigationItemsStorage::navigation_item_exists($nav_item_id) ){
+						if( !WppcNavigationItemsStorage::delete_navigation_item($nav_item_id) ){
 							$message = 1;
 						}else{
 							$message = 3;

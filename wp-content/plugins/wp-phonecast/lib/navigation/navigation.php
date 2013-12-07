@@ -4,12 +4,12 @@ require_once(dirname(__FILE__) .'/navigation-bo-settings.php');
 
 class WppcNavigationItem{
 
-	protected $component_slug = '';
+	protected $component_id = '';
 	protected $position = 0;
 	protected $options = array();
 
-	public function __construct($component_slug,$position,$options=array()){
-		$this->component_slug = $component_slug;
+	public function __construct($component_id,$position,$options=array()){
+		$this->component_id = $component_id;
 		$this->position = $position;
 		$this->options = $options;
 	}
@@ -24,6 +24,13 @@ class WppcNavigationItem{
 	
 	public function set_position($position){
 		$this->position = $position;
+	}
+	
+	public function to_array(){
+		return array('component_id'=>$this->component_id,
+					 'position'=>$this->position,
+					 'options'=>$this->options
+				    );
 	}
 
 }
