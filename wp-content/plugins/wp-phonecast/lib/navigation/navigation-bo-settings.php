@@ -133,7 +133,7 @@ class wppc_navigation{
 				<p class="submit">
 					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" id="cancel-new-item"><?php _e('Cancel') ?></a>&nbsp;
 					<?php if( !empty($components) ): ?>
-						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Save new item') ?>">
+						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Add component to navigation') ?>">
 					<?php endif ?>
 				</p>
 			</form>

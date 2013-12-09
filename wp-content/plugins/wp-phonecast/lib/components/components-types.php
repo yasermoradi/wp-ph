@@ -4,6 +4,8 @@
 require_once(dirname(__FILE__) .'/components-types/posts-list.php');
 require_once(dirname(__FILE__) .'/components-types/page.php');
 
+//TODO : see if we need this and if we do it this way... require_once(dirname(__FILE__) .'/components-types/navigation.php');
+
 abstract class WppcComponentType{
 
 	private $data = array('specific'=>array(),'globals'=>array());
@@ -40,6 +42,7 @@ abstract class WppcComponentType{
 
 class WppcComponentsTypes{
 	
+	//TODO : do this dynamically!
 	public static function get_available_components_types(){
 	
 		$available_components_types = array(
@@ -49,6 +52,9 @@ class WppcComponentsTypes{
 				'page' => array(
 						'label' => __('Wordpress page'),
 				),
+				/*'navigation' => array(
+						'label' => __('Navigation'),
+				),*/
 				/*'terms-list' => array(
 						'label' => __('Terms list'),
 				),*/

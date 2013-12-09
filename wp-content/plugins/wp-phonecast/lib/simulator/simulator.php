@@ -26,7 +26,7 @@ class wppc_simulator{
 			switch($file){
 				case 'config.js':
 					$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api';
-					$theme = 'default';
+					$theme = 'bootstrap'; //'bootstrap','default';
 					$app_title = get_bloginfo('name');
 					
 					header("Content-type: text/javascript;  charset=utf-8");
@@ -58,7 +58,9 @@ class wppc_simulator{
 
 	public static function settings_panel(){
 
-		$appli_url = plugins_url('appli' , dirname(dirname(__FILE__)) ) .'/index.html';
+		$base_url = plugins_url('appli' , dirname(dirname(__FILE__)) );
+
+		$appli_url = $base_url .'/index.html';
 		
 		$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api/synchronization';
 		
@@ -79,6 +81,9 @@ class wppc_simulator{
 				<div id="debug-infos">
 					<h3><?php _e('Preview in browser') ?></h3>
 					<a href="<?php echo $appli_url ?>">Preview</a>
+					
+					<h3><?php _e('Config file') ?></h3>
+					<a href="<?php echo $base_url .'/config.js' ?>"><?php _e('View config file') ?></a>
 					
 					<h3><?php _e('Web services') ?></h3>
 					<a href="<?php echo $wp_ws_url ?>"><?php echo $wp_ws_url ?></a>
