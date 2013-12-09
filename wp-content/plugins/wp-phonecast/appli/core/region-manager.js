@@ -77,7 +77,6 @@ define(function (require) {
 	    	}
 	    };
 	    
-	    //TODO : see how to apply the "laodViewData" logic to menu...
 	    var showMenu = function(force_reload){
 	    	if( menuView ){
 	    		if( $(elMenu).length 
@@ -90,6 +89,10 @@ define(function (require) {
 	    			$(elMenu).empty();
 	    		}
 	    	}
+	    };
+	    
+	    region.getMenuView = function(){
+	    	return menuView;
 	    };
 	    
 	    var closeView = function (view) {

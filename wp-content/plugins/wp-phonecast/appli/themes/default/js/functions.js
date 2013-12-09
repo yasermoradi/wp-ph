@@ -42,7 +42,7 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/snap'],functio
 	
 	RegionManager.on('page:showed',function(current_page,view){
 		
-		$("#content").animate({ scrollTop: 0 }, 0);
+		$("body,html").animate({ scrollTop: 0 }, 0);
 		
 		if( current_page.page_type == 'single' ){
 			snapper.close();

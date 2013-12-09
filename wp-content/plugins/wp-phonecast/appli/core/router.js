@@ -59,6 +59,10 @@ define(function (require) {
 	        					}
 	        				}
 	        				break;
+	        			case 'navigation':
+	        				App.setCurrentPage('navigation',component_id,{});
+	        				RegionManager.show(RegionManager.getMenuView());
+	        				break;
 	        		}
         		}else{
         			App.router.default_route();

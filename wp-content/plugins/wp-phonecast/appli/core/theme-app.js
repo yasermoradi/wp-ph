@@ -77,5 +77,9 @@ define(function (require) {
     	  return App.getCurrentPage();
       };
       
+      themeApp.navigate = function(navigate_to){
+    	  App.router.navigate(navigate_to,{trigger: true});
+      };
+      
 	  return themeApp;
 });
