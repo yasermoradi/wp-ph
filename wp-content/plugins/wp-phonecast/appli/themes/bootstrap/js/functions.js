@@ -20,12 +20,12 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 	});
 	
 	App.on('refresh:start',function(){
-		$('#refresh-button span').addClass('refreshing');
+		$('#refresh-button').addClass('refreshing');
 	});
 	
 	App.on('refresh:end',function(){
 		scrollTop();
-		$('#refresh-button span').removeClass('refreshing');
+		$('#refresh-button').removeClass('refreshing');
 	});
 	
 	App.on('error',function(error){
