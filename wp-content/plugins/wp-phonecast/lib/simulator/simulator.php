@@ -26,7 +26,7 @@ class wppc_simulator{
 			switch($file){
 				case 'config.js':
 					$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api';
-					$theme = 'bootstrap'; //'bootstrap','default';
+					$theme = WppcThemesStorage::get_current_theme();
 					$app_title = get_bloginfo('name');
 					
 					header("Content-type: text/javascript;  charset=utf-8");

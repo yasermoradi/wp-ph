@@ -10,6 +10,7 @@ if( !class_exists('WpPhoneCast') ){
 require_once(dirname(__FILE__) .'/lib/web-services/web-services.php');
 require_once(dirname(__FILE__) .'/lib/components/components.php');
 require_once(dirname(__FILE__) .'/lib/navigation/navigation.php');
+require_once(dirname(__FILE__) .'/lib/themes/themes.php');
 require_once(dirname(__FILE__) .'/lib/simulator/simulator.php');
 
 class WpPhoneCast{
