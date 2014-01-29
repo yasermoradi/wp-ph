@@ -9,7 +9,7 @@ class WppcSimulator{
 	public static function hooks(){
 		if( is_admin() ){
 			add_action('admin_menu',array(__CLASS__,'add_settings_panels'));
-			add_action('admin_enqueue_scripts', array(__CLASS__,'admin_enqueue_scripts'));
+			add_filter('post_row_actions',array(__CLASS__,'add_action_link'),10,2);
 		}
 	}
 	
@@ -17,7 +17,17 @@ class WppcSimulator{
 		add_submenu_page(WppcApps::menu_item,__('Simulator'), __('Simulator'), 'manage_options', self::menu_item, array(__CLASS__,'settings_panel'));
 	}
 
-	public static function admin_enqueue_scripts(){
+	public static function add_action_link($actions){
+		global $post;
+		if( $post->post_type == 'wppc_apps' ) {
+			if( array_key_exists('trash',$actions) ){
+				$trash_mem = $actions['trash'];
+				unset($actions['trash']);
+				$actions['wppc-simulate-app'] = '<a href="'. self::get_simulator_url($post->ID) .'">'. __('View in simulator') .'</a>';
+				$actions['trash'] = $trash_mem;
+			}
+		}
+		return $actions;
 	}
 
 	public static function settings_panel(){
