@@ -28,54 +28,65 @@ require(['root/config'],function(Config){
 	    }
 	});
 	
-	require(['jquery', 'core/app', 'core/router', 'core/region-manager'], 
-			function ($, App, Router, RegionManager) {
+	require(['jquery', 'core/app', 'core/router', 'core/region-manager', 'core/phonegap-utils'], 
+			function ($, App, Router, RegionManager, PhoneGap) {
 	    
-	  //Backbone.emulateHTTP = true;
-	  //Backbone.emulateJSON = true;
+			var launch = function() { 
+		  
+				RegionManager.startWaiting();
+				  
+				RegionManager.buildHead();
+		  
+				App.initialize();
+		  
+				RegionManager.buildLayout();
 
-	  $(document).ready(function() { 
+				RegionManager.buildMenu();
 		  
-		  RegionManager.startWaiting();
+				App.router = new Router();		 
 		  
-		  RegionManager.buildHead();
+				require(['theme/js/functions'],
+						function(){ 
+							App.sync(
+								function(){
 		  
-		  App.initialize();
+									App.resetDefaultRoute();
+				  
+									Backbone.history.start();
+				  
+									//Refresh at app launch : as the theme is now loaded, use theme-app :
+									require(['core/theme-app'],function(ThemeApp){
+										ThemeApp.refresh();
+									});
+								  
+									RegionManager.stopWaiting();
+									PhoneGap.hideSplashScreen();
+								  
+								},
+								function(){
+									Backbone.history.start();
+									console.log("Sync error");
+									RegionManager.stopWaiting();
+									PhoneGap.hideSplashScreen();
+								},
+								false //true to force refresh local storage at each app launch.
+							);
+					
+						},
+						function(error){ 
+							console.log('Require theme/js/functions.js error', error); 
+						}
+				);  
 		  
-		  App.sync(function(){
-			  
-			  RegionManager.buildLayout();
-			  
-			  RegionManager.buildMenu();
-			  
-			  App.router = new Router();
-			  App.resetDefaultRoute();
-			  
-			  require(['theme/js/functions'],
-					  function(){ 
-				  		//Refresh at app launch : as the theme is now loaded, use theme-app :
-				  		require(['core/theme-app'],function(ThemeApp){
-				  			ThemeApp.refresh();
-				  		});
-				  		Backbone.history.start();
-				  		RegionManager.stopWaiting();
-			  		  },
-			  		  function(error){ 
-			  			  console.log('Require theme/js/functions.js error', error); 
-			  		  }
-			  );
-			  
-		  },
-		  function(){
-			  console.log("Sync error");
-		  },
-		  false //true to force refresh local storage at each app launch.
-		  );
-	  });
+			};
+	  
+			if( PhoneGap.isLoaded() ){
+				// Listen for the deviceready event
+				document.addEventListener('deviceready', launch, false);
+			}else{
+				$(document).ready(launch);
+			}
 	    
 	});
 	
 });
-
-
-
