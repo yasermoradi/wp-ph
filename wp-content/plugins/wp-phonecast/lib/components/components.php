@@ -7,23 +7,32 @@ require_once(dirname(__FILE__) .'/components-types.php');
 
 class WppcComponents{
 	
-	public static function get_components_synchro_data(){
+	public static function get_app_components($app_post_id){
+		return WppcComponentsStorage::get_components($app_post_id);
+	}
+	
+	public static function get_components_synchro_data($app_id){
 		
 		$components = array();
-		$components_raw = WppcComponentsStorage::get_components();
-		$globals = array();
-		foreach($components_raw as $component){
-			$component_data = WppcComponentsTypes::get_component_data($component,$globals);
-			$globals = $component_data['globals'];
-			$components[$component->slug] = $component_data['specific'];
-		}
-		
-		$navigation_items = WppcNavigationItemsStorage::get_navigation_indexed_by_components_slugs(true);
-		
 		$components_data = array();
-		$components_data['navigation'] = $navigation_items;
-		$components_data['components'] = $components;
-		$components_data['globals'] = $globals;
+		
+		$components_raw = WppcComponentsStorage::get_components($app_id);
+		
+		if( !empty($components_raw) ){
+			$globals = array();
+			foreach($components_raw as $component){
+				$component_data = WppcComponentsTypes::get_component_data($component,$globals);
+				$globals = $component_data['globals'];
+				$components[$component->slug] = $component_data['specific'];
+			}
+			
+			$navigation_items = WppcNavigationItemsStorage::get_navigation_indexed_by_components_slugs($app_id,true);
+			
+			
+			$components_data['navigation'] = $navigation_items;
+			$components_data['components'] = $components;
+			$components_data['globals'] = $globals;
+		}
 		
 		return $components_data;
 	}

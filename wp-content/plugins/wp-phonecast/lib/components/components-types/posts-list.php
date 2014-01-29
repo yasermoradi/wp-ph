@@ -122,7 +122,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 				var $ = jQuery;
 				$('.wrap').delegate('.posts-list-taxonomies','change',function(){
 					var taxonomy = $(this).find(":selected").val();
-					Wppc.ajax_update_component_options(this,'posts-list','change-taxonomy',taxonomy);
+					WppcComponents.ajax_update_component_options(this,'posts-list','change-taxonomy',taxonomy);
 				});
 			})();
 		</script>
@@ -156,9 +156,9 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		<?php
 	}
 	
-	public function get_options_from_posted_form(){
-		$taxonomy = $_POST['taxonomy'];
-		$term = $_POST['term'];
+	public function get_options_from_posted_form($data){
+		$taxonomy = $data['taxonomy'];
+		$term = $data['term'];
 		$options = array('taxonomy' => $taxonomy, 'term' => $term);
 		return $options;
 	}

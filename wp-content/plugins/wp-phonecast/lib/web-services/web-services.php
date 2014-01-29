@@ -7,16 +7,17 @@ class WppcWebServices{
 	public static function add_rewrite_tags_and_rules(){
 		
 		add_rewrite_tag('%wppc%','([01])');
+		add_rewrite_tag('%wppc_app_id%','([^&]+)');
 		add_rewrite_tag('%wppc_slug%','([^&]+)');
 		add_rewrite_tag('%wppc_id%','([0-9]+)');
 		add_rewrite_tag('%wppc_data%','([^&]+)');
 		add_rewrite_tag('%wppc_action%','([^&]+)');
 		add_rewrite_tag('%wppc_token%','([^&]+)');
 		
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_token=$matches[1]&wppc_slug=$matches[2]&wppc_id=$matches[3]&wppc_action=one', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_slug=$matches[1]&wppc_id=$matches[2]&wppc_action=one', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_token=$matches[1]&wppc_slug=$matches[2]&wppc_action=list', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/?$', 'index.php?wppc=1&wppc_slug=$matches[1]&wppc_action=list', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_id=$matches[4]&wppc_action=one', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_id=$matches[3]&wppc_action=one', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_action=list', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_action=list', 'top');
 
 		//To define rewrite rules specific to a web service created via hooks (see web-services-crud.php) :
 		add_action('wppc_add_rewrite_rules','');
@@ -29,19 +30,21 @@ class WppcWebServices{
 				
 			if( $wp_query->query_vars['wppc'] == 1 ){
 				
-				if( !empty($wp_query->query_vars['wppc_slug']) ){
-					$web_service_slug = $wp_query->query_vars['wppc_slug'];
-					if( self::web_service_exists($web_service_slug) ){
-						if( self::check_token($web_service_slug) ){
-							$id = isset($wp_query->query_vars['wppc_id']) ? $wp_query->query_vars['wppc_id'] : 0;
-							self::exit_handle_request($web_service_slug,$wp_query->query_vars['wppc_action'],$id);
-						}else{
-							self::exit_sending_error(__('Wrong security token'));
+				if( !empty($wp_query->query_vars['wppc_app_id']) ){
+					if( !empty($wp_query->query_vars['wppc_slug']) ){
+						$web_service_slug = $wp_query->query_vars['wppc_slug'];
+						if( self::web_service_exists($web_service_slug) ){
+							if( self::check_token($web_service_slug) ){
+								$id = isset($wp_query->query_vars['wppc_id']) ? $wp_query->query_vars['wppc_id'] : 0;
+								self::exit_handle_request($web_service_slug,$wp_query->query_vars['wppc_action'],$id);
+							}else{
+								self::exit_sending_error(__('Wrong security token'));
+							}
+							break;
 						}
-						break;
 					}
 				}
-	
+				
 				//No web service recognised > exit with 404
 				self::set_404();
 	
@@ -431,6 +434,10 @@ class WppcWebServices{
 		}
 	
 		return $generated_cache;
+	}
+	
+	public static function get_app_web_service_url($app_id_or_slug){
+		return get_bloginfo('wpurl') .'/phonecast-api/'. WppcApps::get_app_slug($app_id_or_slug);
 	}
 	
 	private static function web_service_exists($web_service_slug){

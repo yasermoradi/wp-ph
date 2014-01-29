@@ -1,7 +1,5 @@
 require.config({
 
-	urlArgs : "bust="+new Date().getTime(),
-	 
     baseUrl: 'vendor',
 
     waitSeconds: 10,

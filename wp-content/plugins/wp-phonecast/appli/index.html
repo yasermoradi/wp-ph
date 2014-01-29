@@ -6,6 +6,15 @@
 				urlArgs : "bust="+new Date().getTime()
 			};
 		</script>
+		
+		<script type="text/javascript">
+			/* Only for use inside WP plugin : to pass the app id to our app js core */
+			var query = window.location.search.substring(1);
+		  	if( query.length ){
+		  		require.urlArgs = query +'&'+ require.urlArgs;
+		  	}
+		</script>
+		
 		<script data-main="core/launch.js" src="vendor/require.js"></script>
 	</head>
 	<body>

@@ -1,103 +1,109 @@
 <?php
 
-class wppc_navigation{
+class WppcNavigationBoSettings{
 	
 	const menu_item = 'wppc_navigation_bo_settings';
 	
 	public static function hooks(){
 		if( is_admin() ){
-			add_action('admin_menu',array(__CLASS__,'add_settings_panels'));
+			add_action('add_meta_boxes', array(__CLASS__,'add_meta_boxes'));
 			add_action('admin_enqueue_scripts', array(__CLASS__,'admin_enqueue_scripts'));
+			add_action('wp_ajax_wppc_edit_navigation', array(__CLASS__,'ajax_wppc_edit_navigation'));
 		}
 	}
 	
-	public static function add_settings_panels(){
-		add_submenu_page(WppcComponentsBoSettings::menu_item,__('Navigation'), __('Navigation'), 'manage_options', self::menu_item, array(__CLASS__,'settings_panel'));
-	}
-	
 	public static function admin_enqueue_scripts(){
-		global $pagenow, $typenow, $plugin_page;
-		if( $pagenow == 'admin.php' && $plugin_page == self::menu_item ){
+		global $pagenow, $typenow;
+		if( ($pagenow == 'post.php' || $pagenow == 'post-new.php') && $typenow == 'wppc_apps' ){
 			wp_enqueue_script('wppc_navigation_bo_settings_js',plugins_url('lib/navigation/navigation-bo-settings.js', dirname(dirname(__FILE__))),array('jquery','jquery-ui-sortable'),WpPhoneCast::resources_version);
 		}
 	}
 	
-	public static function settings_panel(){
-		self::handle_navigation_actions();
-		self::handle_url_messages();
-		$nav_items = WppcNavigationItemsStorage::get_navigation_items();
-		
-		$nav_items_positions = array();
-		?>
-			<div class="wrap">
-				<?php screen_icon('generic') ?>
-				<h2><?php _e('Navigation') ?> <a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add new component to navigation') ?></a></h2>
-				
-				<?php settings_errors('wppc_navigation_settings') ?>
-				
-				<div id="new-item-form" style="display:none">
-					<h4><?php _e('New navigation item') ?></h4>
-					<?php self::echo_item_form() ?>
-				</div>
-				
-				<table class="wp-list-table widefat fixed" id="navigation-items-table">
-					<thead>
-						<tr>
-							<th><?php _e('Navigation components') ?></th>
-						</tr>
-					</thead>
-					<tbody>
-					<?php if( !empty($nav_items) ): ?>
-						<?php $i = 0 ?>
-						<?php foreach($nav_items as $nav_item_id => $nav_item): ?>
-							<?php $alternate_class = $i++%2 ? '' : 'alternate' ?>
-							<?php $component = WppcComponentsStorage::get_component($nav_item->component_id) ?>
-							<?php if( !empty($component) ): ?>
-								<?php $nav_items_positions[$nav_item_id] = $nav_item->position ?>
-								<tr class="ui-state-default <?php echo $alternate_class ?>" data-id="<?php echo $nav_item_id ?>">
-									<td>
-										<?php echo $component->label ?> (<?php echo $component->slug ?>)
-										<div class="row-actions">
-											<span class="trash"><a class="submitdelete" href="<?php echo add_query_arg(array('wppc_action'=>'delete','navigation_item_id'=>$nav_item_id)) ?>" class="delete_item"><?php _e('Delete')?></a></span>
-										</div>
-									</td>
-								</tr>
-							<?php endif ?>
-						<?php endforeach ?>
-					<?php else: ?>
-						<tr><td><?php _e('No navigation item yet!') ?></td></tr>
-					<?php endif ?>
-					</tbody>
-				</table>
-				
-				<?php if( !empty($nav_items) && !empty($nav_items_positions) ): ?>
-					<form  method="post" action="<?php echo remove_query_arg('wppc_feedback',add_query_arg(array())) ?>" >
-						<input type="hidden" name="order-items" value="1" />
-						<?php foreach($nav_items_positions as $nav_item_id => $nav_item_position): ?>
-							<input type="hidden" id="position-<?php echo $nav_item_id ?>" name="positions[<?php echo $nav_item_id ?>]" value="<?php echo $nav_item_position ?>" />
-						<?php endforeach ?>
-						<input type="submit" name="submit" id="submit-navigation-orger" class="button button-primary" value="<?php _e('Save navigation order') ?>">
-					</form>
-				<?php endif ?>
-				
-				<style>
-					#navigation-items-table{ margin:15px 0 }
-					.ui-sortable-placeholder{ height: 60px; border-bottom:1px solid #dfdfdf; }
-					.ui-sortable-helper{ width:100%; background:#fff; }
-					.ui-state-default{ cursor:move }
-				</style>
-			</div>
-		<?php
+	public static function add_meta_boxes(){
+		add_meta_box(
+			'wppc_app_navigation',
+			__('App navigation'),
+			array(__CLASS__,'inner_components_box'),
+			'wppc_apps',
+			'normal',
+			'default'
+		);
 	}
 	
-	private static function echo_item_form(){
+	public static function inner_components_box($post,$current_box){
+		$nav_items = WppcNavigationItemsStorage::get_navigation_items($post->ID);
+		?>
+		<div id="navigation-wrapper">
+			<a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add new component to navigation') ?></a>
+			
+			<div id="navigation-feedback" style="display:none"></div>
+			
+			<div id="new-item-form" style="display:none">
+				<h4><?php _e('New navigation item') ?></h4>
+				<?php self::echo_item_form($post->ID) ?>
+			</div>
+			
+			<table class="wp-list-table widefat fixed" id="navigation-items-table" data-post-id="<?php echo $post->ID ?>">
+				<thead>
+					<tr>
+						<th><?php _e('Navigation components') ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if( !empty($nav_items) ): ?>
+					<?php $i = 0 ?>
+					<?php foreach($nav_items as $nav_item_id => $nav_item): ?>
+						<?php echo self::get_navigation_row($post->ID,$i++,$nav_item_id,$nav_item) ?>
+					<?php endforeach ?>
+				<?php else: ?>
+					<tr class="no-component-yet"><td><?php _e('No navigation item yet!') ?></td></tr>
+				<?php endif ?>
+				</tbody>
+			</table>
+			
+			<style>
+				#navigation-wrapper { margin-top:1em }
+				#navigation-items-table{ margin:5px 0 }
+				#new-item-form{ margin-bottom:4em }
+				.ui-sortable-placeholder{ height: 60px; border-bottom:1px solid #dfdfdf; }
+				.ui-sortable-helper{ width:100%; background:#fff; }
+				.ui-state-default{ cursor:move }
+				#navigation-wrapper #components-feedback{ padding:1em; margin:5px }
+			</style>
+		</div>
+		<?php 
+	}
+	
+	private static function get_navigation_row($post_id,$i,$nav_item_id,$nav_item){
+		ob_start();
+		?>
+		<?php $alternate_class = $i%2 ? '' : 'alternate' ?>
+		<?php $component = WppcComponentsStorage::get_component($post_id,$nav_item->component_id) ?>
+		<?php if( !empty($component) ): ?>
+			<tr class="ui-state-default <?php echo $alternate_class ?>" data-id="<?php echo $nav_item_id ?>" id="navigation-item-row-<?php echo $nav_item_id ?>">
+				<td>
+					<?php echo $component->label ?> (<?php echo $component->slug ?>)
+					<input type="hidden" id="position-<?php echo $nav_item_id ?>" name="positions[<?php echo $nav_item_id ?>]" value="<?php echo $nav_item->position ?>" />
+					<div class="row-actions">
+						<span class="trash"><a class="submitdelete delete_navigation_item" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $nav_item_id ?>"><?php _e('Delete')?></a></span>
+					</div>
+				</td>
+			</tr>
+		<?php endif ?>
+		<?php 
+		$navigation_row_html = ob_get_contents();
+		ob_end_clean();
+		return $navigation_row_html;
+	}
+	
+	private static function echo_item_form($post_id){
 		
-		$components = WppcComponentsStorage::get_components();
+		$components = WppcComponentsStorage::get_components($post_id);
 		
 		$no_components = empty($components);
 		
 		foreach(array_keys($components) as $component_id){
-			if( WppcNavigationItemsStorage::component_in_navigation($component_id) ){
+			if( WppcNavigationItemsStorage::component_in_navigation($post_id,$component_id) ){
 				unset($components[$component_id]);
 			}
 		}
@@ -109,7 +115,7 @@ class wppc_navigation{
 		
 		?>
 		<?php if( !$no_components ): ?>
-			<form method="post" action="<?php echo remove_query_arg('wppc_feedback',add_query_arg(array())) ?>" id="item-form-<?php echo $navigation_item_id ?>">
+			<div id="navigation-item-form-<?php echo $navigation_item_id ?>" class="navigation-item-form">
 				<table class="form-table">
 					<tr valign="top">
 						<?php if( !empty($components) ): ?>
@@ -129,96 +135,109 @@ class wppc_navigation{
 				    </tr>
 				</table>
 				<input type="hidden" name="position" value="0" />
-				<input type="hidden" name="new_item_submitted" value="1"/>
+				<input type="hidden" name="navigation_post_id" value="<?php echo $post_id ?>" />
 				<p class="submit">
 					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" id="cancel-new-item"><?php _e('Cancel') ?></a>&nbsp;
 					<?php if( !empty($components) ): ?>
-						<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e('Add component to navigation') ?>">
+						<a class="button button-primary navigation-form-submit" data-id="<?php echo $navigation_item_id ?>"><?php _e('Add component to navigation') ?></a>
 					<?php endif ?>
 				</p>
-			</form>
+			</div>
 		<?php else: ?>
 			<div>
-				<?php _e('No component found!') ?> : <a href="<?php echo admin_url('admin.php?page=wppc_components_bo_settings') ?>"><?php _e('Please create a component!') ?></a>
+				<?php _e('No component found!') ?> : <?php _e('Please create a component!') ?>
 			</div>
 		<?php endif ?>
 		<?php 
 	}
 	
-	private static function handle_navigation_actions(){
+	public static function ajax_wppc_edit_navigation(){
 		//TODO : add nonce!
+		
+		$answer = array('ok' => 0, 'message' => '', 'type' => 'error', 'html' => '');
+		
+		//TODO : nonce!
+		$action = $_POST['wppc_action'];
+		$data = $_POST['data'];
+		
+		if( $action == 'add_or_update' ){
 	
-		if( isset($_POST['new_item_submitted']) && $_POST['new_item_submitted'] == 1 ){
-	
-			$nav_item_component_id = $_POST['component_id'];
-			$nav_item_position = !empty($_POST['position']) && is_numeric($_POST['position']) ? $_POST['position'] : 0;
+			$post_id = $data['navigation_post_id'];
+			
+			$nav_item_component_id = $data['component_id'];
+			$nav_item_position = !empty($data['position']) && is_numeric($data['position']) ? $data['position'] : 0;
 				
 			if( empty($nav_item_component_id) ){
-				add_settings_error('wppc_navigation_settings','no-component-slug',__('You must choose a component!'),'error');
-				return;
+				$answer['message'] = __('You must choose a component!');
+				self::exit_sending_json($answer);
 			}
 				
-			if( !WppcComponentsStorage::component_exists($nav_item_component_id) ){
-				add_settings_error('wppc_navigation_settings','component-doesnt-exist',__("This component doesn't exist!"),'error');
-				return;
+			if( !WppcComponentsStorage::component_exists($post_id,$nav_item_component_id) ){
+				$answer['message'] = __("This component doesn't exist!");
+				self::exit_sending_json($answer);
 			}
 			
-			if( WppcNavigationItemsStorage::navigation_item_exists_by_component($nav_item_component_id) ){
-				add_settings_error('wppc_navigation_settings','already-exists',__('This component is already in navigation!'),'error');
-				return;
+			if( WppcNavigationItemsStorage::navigation_item_exists_by_component($post_id,$nav_item_component_id) ){
+				$answer['message'] = __('This component is already in navigation!');
+				self::exit_sending_json($answer);
 			}
 				
 			$navigation_item = new WppcNavigationItem($nav_item_component_id, $nav_item_position);
-			WppcNavigationItemsStorage::add_or_update_navigation_item($navigation_item);
+			$navigation_item_id = WppcNavigationItemsStorage::add_or_update_navigation_item($post_id,$navigation_item);
 				
-			add_settings_error('wppc_navigation_settings','created',__('New navigation item created successfuly'),'updated');
-	
-		}elseif( isset($_POST['order-items']) && $_POST['order-items'] == 1 ){
+			$answer['html'] = self::get_navigation_row($post_id, WppcNavigationItemsStorage::get_nb_navigation_items($post_id), $navigation_item_id, $navigation_item);
+				
+			$answer['ok'] = 1;
+			$answer['type'] = 'updated';
+			$answer['message'] = __('New navigation item created successfuly');
+			
+			self::exit_sending_json($answer);
+			
+		}elseif( $action == 'delete' ){
 
-			if( !empty($_POST['positions']) && is_array($_POST['positions']) ){
-				WppcNavigationItemsStorage::update_items_positions($_POST['positions']);
-				add_settings_error('wppc_navigation_settings','order-updated',__('Navigation order updated successfuly'),'updated');
+			$nav_item_id = $data['navigation_item_id'];
+			$post_id = $data['post_id'];
+			if( WppcNavigationItemsStorage::navigation_item_exists($post_id,$nav_item_id) ){
+				if( !WppcNavigationItemsStorage::delete_navigation_item($post_id,$nav_item_id) ){
+					$answer['message'] = __('Could not delete navigation item');
+				}else{
+					$answer['ok'] = 1;
+					$answer['type'] = 'updated';
+					$answer['message'] = __('Navigation item deleted successfuly');
+				}
+			}else{
+				$answer['message'] = __('Navigation item to delete not found');
+			}
+			self::exit_sending_json($answer);
+			
+		}elseif( $action == 'move' ){
+
+			if( !empty($data['positions']) && is_array($data['positions']) ){
+				WppcNavigationItemsStorage::update_items_positions($data['post_id'],$data['positions']);
+				$answer['message'] = __('Navigation order updated successfuly');
+				$answer['ok'] = 1;
+				$answer['type'] = 'updated';
 			}
 		
-		}elseif( !empty($_GET['wppc_action']) ){
-			$action = $_GET['wppc_action'];
-			switch($action){
-				case 'delete':
-					$nav_item_id = $_GET['navigation_item_id'];
-					if( WppcNavigationItemsStorage::navigation_item_exists($nav_item_id) ){
-						if( !WppcNavigationItemsStorage::delete_navigation_item($nav_item_id) ){
-							$message = 1;
-						}else{
-							$message = 3;
-						}
-					}else{
-						$message = 2;
-					}
-					wp_redirect(remove_query_arg(array('wppc_action','navigation_item_id'),add_query_arg(array('wppc_feedback'=>$message))));
-					break;
+		}
+		
+		//We should not arrive here, but just in case :
+		self::exit_sending_json($answer);
+	}
+	
+	private static function exit_sending_json($answer){
+		if( !WP_DEBUG ){
+			$content_already_echoed = ob_get_contents();
+			if( !empty($content_already_echoed) ){
+				//TODO : allow to add $content_already_echoed in the answer as a JSON data for debbuging
+				ob_end_clean();
 			}
 		}
-	}
 	
-	private static function handle_url_messages(){
-		if( !empty($_GET['wppc_feedback']) && is_numeric($_GET['wppc_feedback']) ){
-			$messages = self::get_feedback_messages();
-			$msg_id = $_GET['wppc_feedback'];
-			if( array_key_exists($msg_id,$messages) ){
-				add_settings_error('wppc_navigation_settings','url-message-'. $msg_id,$messages[$msg_id]['message'],$messages[$msg_id]['type']);
-			}
-		}
+		header('Content-type: application/json');
+		echo json_encode($answer);
+		exit();
 	}
-	
-	private static function get_feedback_messages(){
-		$messages = array(
-				1 => array('message'=>__('Could not delete navigation item'), 'type' => 'error'),
-				2 => array('message'=>__('Navigation item to delete not found'), 'type' => 'error'),
-				3 => array('message'=>__('Navigation item deleted successfuly'), 'type' => 'updated'),
-		);
-		return $messages;
-	}
-	
 }
 
-wppc_navigation::hooks();
+WppcNavigationBoSettings::hooks();

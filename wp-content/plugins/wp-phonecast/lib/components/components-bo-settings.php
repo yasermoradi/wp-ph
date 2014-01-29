@@ -1,46 +1,50 @@
 <?php
 class WppcComponentsBoSettings{
 
-	const menu_item = 'wppc_components_bo_settings';
-
 	public static function hooks(){
 		if( is_admin() ){
-			add_action('admin_menu',array(__CLASS__,'add_settings_panels'));
+			add_action('add_meta_boxes', array(__CLASS__,'add_meta_boxes'));
 			add_action('admin_enqueue_scripts', array(__CLASS__,'admin_enqueue_scripts'));
 			add_action('wp_ajax_wppc_update_component_type', array(__CLASS__,'ajax_update_component_type'));
 			add_action('wp_ajax_wppc_update_component_options', array(__CLASS__,'ajax_update_component_options'));
+			add_action('wp_ajax_wppc_edit_component', array(__CLASS__,'ajax_wppc_edit_component'));
 		}
 	}
 
-	public static function add_settings_panels(){
-		add_menu_page(__('WP PhoneCast'), __('WP PhoneCast'), 'manage_options', self::menu_item, array(__CLASS__,'settings_panel'));
-		add_submenu_page(self::menu_item,__('Components'), __('Components'), 'manage_options', self::menu_item, array(__CLASS__,'settings_panel'));
-	}
-	
 	public static function admin_enqueue_scripts(){
-		global $pagenow, $typenow, $plugin_page;
-		if( $pagenow == 'admin.php' && $plugin_page == self::menu_item ){
+		global $pagenow, $typenow;
+		if( ($pagenow == 'post.php' || $pagenow == 'post-new.php') && $typenow == 'wppc_apps' ){
 			wp_enqueue_script('wppc_components_bo_settings_js',plugins_url('lib/components/components-bo-settings.js', dirname(dirname(__FILE__))),array('jquery'),WpPhoneCast::resources_version);
 		}
 	}
 	
-	public static function settings_panel(){
-		self::handle_component_actions();
-		self::handle_url_messages();
-		$components = WppcComponentsStorage::get_components();
+	public static function add_meta_boxes(){
+		add_meta_box(
+			'wppc_app_components',
+			__('App components'),
+			array(__CLASS__,'inner_components_box'),
+			'wppc_apps',
+			'normal',
+			'default'
+		);
+	}
+	
+	public static function inner_components_box($post,$current_box){
+		$components = WppcComponentsStorage::get_components($post->ID);
 		?>
-		<div class="wrap">
-			<?php screen_icon('generic') ?>
-			<h2><?php _e('Components') ?> <a href="#" class="add-new-h2" id="add-new-component">Add New</a></h2>
-			
-			<?php settings_errors('wppc_components_settings') ?>
+		
+		<div id="components-wrapper">
+		
+			<a href="#" class="add-new-h2" id="add-new-component">Add New</a>
+				
+			<div id="components-feedback" style="display:none"></div>
 			
 			<div id="new-component-form" style="display:none">
 				<h4><?php _e('New Component') ?></h4>
-				<?php self::echo_component_form() ?>
+				<?php self::echo_component_form($post->ID) ?>
 			</div>
 			
-			<table class="wp-list-table widefat fixed" style="margin-top:15px">
+			<table id="components-table" class="wp-list-table widefat fixed" >
 				<thead>
 					<tr>
 						<th><?php _e('Name') ?></th>
@@ -53,43 +57,61 @@ class WppcComponentsBoSettings{
 				<?php if( !empty($components) ): ?>
 					<?php $i = 0 ?>
 					<?php foreach($components as $id => $component): ?>
-						<?php $alternate_class = $i++%2 ? '' : 'class="alternate"' ?>
-						<tr <?php echo $alternate_class ?>>
-							<td>
-								<?php echo $component->label ?>
-								<div class="row-actions">
-									<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $id ?>"><?php _e('Edit') ?></a> | </span>
-									<span class="trash"><a class="submitdelete" href="<?php echo add_query_arg(array('wppc_action'=>'delete','component_id'=>$id)) ?>" class="delete_component"><?php _e('Delete')?></a></span>
-								</div>
-							</td>
-							<td><?php echo $component->slug ?></td>
-							<td><?php echo WppcComponentsTypes::get_label($component->type) ?></td>
-							<td>
-								<?php $options = WppcComponentsTypes::get_options_to_display($component) ?>
-								<?php foreach($options as $option): ?>
-									<?php echo $option['label'] ?> : <?php echo $option['value'] ?><br/>
-								<?php endforeach ?>
-							</td>
-						</tr>
-						<tr class="edit-component-wrapper" id="edit-component-wrapper-<?php echo $id ?>" style="display:none" <?php echo $alternate_class ?>>
-							<td colspan="4">
-								<?php self::echo_component_form($component) ?>
-							</td>
-						</tr>
+						<?php echo self::get_component_row($post->ID,$i++,$id,$component) ?>
 					<?php endforeach ?>
 				<?php else: ?>
-					<tr><td colspan="4"><?php _e('No Component yet!') ?></td></tr>
+					<tr class="no-component-yet"><td colspan="4"><?php _e('No Component yet!') ?></td></tr>
 				<?php endif ?>
 				</tbody>
 			</table>
 			
 			<?php WppcComponentsTypes::echo_components_javascript() ?>
-			
+					
 		</div>
+		
+		<style>
+			#components-wrapper{ margin-top:1em }
+			#components-table{ margin-top:5px }
+			#new-component-form{ margin-bottom: 4em }
+			#components-wrapper #components-feedback{ padding:1em; margin:5px }
+		</style>
+		
 		<?php
 	}
 	
-	private static function echo_component_form($component=null){
+	private static function get_component_row($post_id,$i,$component_id,WppcComponent $component){
+		ob_start();
+		?>
+		<?php $alternate_class = $i%2 ? '' : 'alternate' ?>
+		<tr class="component-row <?php echo $alternate_class ?>" id="component-row-<?php echo $component_id?>">
+			<td>
+				<?php echo $component->label ?>
+				<div class="row-actions">
+					<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $component_id ?>"><?php _e('Edit') ?></a> | </span>
+					<span class="trash"><a class="submitdelete delete_component" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $component_id ?>"><?php _e('Delete')?></a></span>
+				</div>
+			</td>
+			<td><?php echo $component->slug ?></td>
+			<td><?php echo WppcComponentsTypes::get_label($component->type) ?></td>
+			<td>
+				<?php $options = WppcComponentsTypes::get_options_to_display($component) ?>
+				<?php foreach($options as $option): ?>
+					<?php echo $option['label'] ?> : <?php echo $option['value'] ?><br/>
+				<?php endforeach ?>
+			</td>
+		</tr>
+		<tr class="edit-component-wrapper" id="edit-component-wrapper-<?php echo $component_id ?>" style="display:none" <?php echo $alternate_class ?>>
+			<td colspan="4">
+				<?php self::echo_component_form($post_id,$component) ?>
+			</td>
+		</tr>
+		<?php 	
+		$component_row_html = ob_get_contents();
+		ob_end_clean();
+		return $component_row_html;
+	}
+	
+	private static function echo_component_form($post_id,$component=null){
 		
 		$edit = !empty($component);
 	
@@ -97,12 +119,12 @@ class WppcComponentsBoSettings{
 			$component = new WppcComponent('','','posts-list');
 		}
 		
-		$component_id = $edit ? WppcComponentsStorage::get_component_id($component) : '0';
+		$component_id = $edit ? WppcComponentsStorage::get_component_id($post_id,$component) : '0';
 	
 		$components_types = WppcComponentsTypes::get_available_components_types();
 	
 		?>
-		<form method="post" action="<?php echo remove_query_arg('wppc_feedback',add_query_arg(array())) ?>" id="component-form-<?php echo $component_id ?>">
+		<div id="component-form-<?php echo $component_id ?>" class="component-form">
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row"><?php _e('Component label') ?></th>
@@ -130,76 +152,14 @@ class WppcComponentsBoSettings{
 		        	</td>
 		        </tr>
 			</table>
-			<input type="hidden" name="<?php echo $edit ? 'edit' : 'new' ?>_component_submitted" value="<?php echo $component_id ?>"/>
+			<input type="hidden" name="component_id" value="<?php echo $component_id ?>"/>
+			<input type="hidden" name="component_post_id" value="<?php echo $post_id ?>" />
 			<p class="submit">
 				<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" <?php echo !$edit ? 'id="cancel-new-component"' : '' ?>><?php _e('Cancel') ?></a>&nbsp;
-				<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php echo $edit ? __('Save Changes') : 'Save new component'?>">
+				<a class="button button-primary component-form-submit" data-id="<?php echo $component_id ?>"><?php echo $edit ? __('Save Changes') : 'Save new component'?></a>
 			</p>
-		</form>
+		</div>
 		<?php 
-	}
-	
-	private static function handle_component_actions(){
-		//TODO : add nonce! 
-		
-		if( isset($_POST['new_component_submitted']) || !empty($_POST['edit_component_submitted']) ){
-				
-			$edit = !empty($_POST['edit_component_submitted']);
-			$edit_id = $edit ? $_POST['edit_component_submitted'] : 0;
-		
-			$component_label = trim($_POST['component_label']);
-			$component_slug = trim($_POST['component_slug']);
-			$component_type = $_POST['component_type'];
-			
-			if( empty($component_label) ){
-				add_settings_error('wppc_components_settings','no-component-name',__('You must provide a name for the component!'),'error');
-				return;
-			}
-			
-			if( is_numeric($component_slug) ){
-				add_settings_error('wppc_components_settings','slug-numeric',__("The component slug can't be numeric."),'error');
-				return;
-			}
-		
-			if( !$edit ){
-				if( WppcComponentsStorage::component_exists($component_slug) ){
-					add_settings_error('wppc_components_settings','already-exists',sprintf(__('A component with the slug "%s" already exists!'),$component_slug),'error');
-					return;
-				}
-			}
-			
-			$component_options = WppcComponentsTypes::get_component_type_options_from_posted_form($component_type);
-				
-			$component = new WppcComponent($component_slug, $component_label, $component_type, $component_options);
-			WppcComponentsStorage::add_or_update_component($component,$edit_id);
-			
-			if( $edit ){
-				add_settings_error('wppc_components_settings','edited',sprintf(__('Component "%s" updated successfuly'),$component_label),'updated');
-			}else{
-				add_settings_error('wppc_components_settings','created',sprintf(__('Component "%s" created successfuly'),$component_label),'updated');
-			}
-			
-				
-		}elseif( !empty($_GET['wppc_action']) ){
-			$action = $_GET['wppc_action'];
-			switch($action){
-				case 'delete':
-					$id = $_GET['component_id'];
-					if(  is_numeric($id) ){
-						if( $component = WppcComponentsStorage::component_exists($id) ){
-							if( !WppcComponentsStorage::delete_component($id) ){
-								$message = 1;
-							}else{
-								$message = 3;
-							}
-						}else{
-							$message = 2;
-						}
-						wp_redirect(remove_query_arg(array('wppc_action','component_id'),add_query_arg(array('wppc_feedback'=>$message))));
-					}
-					break;
-			}
-		}
 	}
 	
 	public static function ajax_update_component_options(){
@@ -222,24 +182,109 @@ class WppcComponentsBoSettings{
 		exit();
 	}
 	
-	private static function handle_url_messages(){
-		if( !empty($_GET['wppc_feedback']) && is_numeric($_GET['wppc_feedback']) ){
-			$messages = self::get_feedback_messages();
-			$msg_id = $_GET['wppc_feedback'];
-			if( array_key_exists($msg_id,$messages) ){
-				add_settings_error('wppc_components_settings','url-message-'. $msg_id,$messages[$msg_id]['message'],$messages[$msg_id]['type']);
+	public static function ajax_wppc_edit_component(){
+	
+		$answer = array('ok' => 0, 'message' => '', 'type' => 'error', 'html' => '');
+
+		//TODO : nonce!
+		$action = $_POST['wppc_action'];
+		$data = $_POST['data'];
+		
+		if( $action == 'add_or_update' ){
+			
+			$post_id = $data['component_post_id'];
+			if( empty($post_id) ){
+				$answer['message'] = __("Application not found.");
+				self::exit_sending_json($answer);
 			}
-		} 
+
+			$edit = !empty($data['component_id']);
+			$edit_id = $edit ? intval($data['component_id']) : 0;
+		
+			$component_label = trim($data['component_label']);
+			$component_slug = trim($data['component_slug']);
+			$component_type = $data['component_type'];
+				
+			if( empty($component_label) ){
+				$answer['message'] = __('You must provide a name for the component!');
+				self::exit_sending_json($answer);
+			}
+			
+			if( empty($component_slug) ){
+				$answer['message'] = __("You must provide a slug for the component.");
+				self::exit_sending_json($answer);
+			}
+			
+			if( is_numeric($component_slug) ){
+				$answer['message'] = __("The component slug can't be numeric.");
+				self::exit_sending_json($answer);
+			}
+		
+			if( !$edit ){
+				if( WppcComponentsStorage::component_exists($post_id,$component_slug) ){
+					$answer['message'] = sprintf(__('A component with the slug "%s" already exists!'),$component_slug);
+					self::exit_sending_json($answer);
+				}
+			}
+				
+			$component_options = WppcComponentsTypes::get_component_type_options_from_posted_form($component_type,$data);
+		
+			$component = new WppcComponent($component_slug, $component_label, $component_type, $component_options);
+			$component_id = WppcComponentsStorage::add_or_update_component($post_id,$component,$edit_id);
+			
+			$answer['html'] = self::get_component_row($post_id, WppcComponentsStorage::get_nb_components($post_id), $component_id, $component);
+			
+			if( $edit ){
+				$answer['ok'] = 1;
+				$answer['type'] = 'updated';
+				$answer['message'] = sprintf(__('Component "%s" updated successfuly'),$component_label);
+				
+			}else{
+				$answer['ok'] = 1;
+				$answer['type'] = 'updated';
+				$answer['message'] = sprintf(__('Component "%s" created successfuly'),$component_label);
+			}
+			
+			self::exit_sending_json($answer);
+			
+		}elseif( $action == 'delete' ){
+			$id = $data['component_id'];
+			$post_id = $data['post_id'];
+			if(  is_numeric($id) && is_numeric($post_id) ){
+				if( $component = WppcComponentsStorage::component_exists($post_id,$id) ){
+					if( !WppcComponentsStorage::delete_component($post_id,$id) ){
+						$answer['message'] = __('Could not delete component');
+					}else{
+						$answer['ok'] = 1;
+						$answer['type'] = 'updated';
+						$answer['message'] = __('Component deleted successfuly');
+					}
+				}else{
+					$answer['message'] = __('Component to delete not found');
+				}
+				
+			}
+			self::exit_sending_json($answer);
+		}
+		
+		//We should not arrive here, but just in case :
+		self::exit_sending_json($answer);
 	}
 	
-	private static function get_feedback_messages(){
-		$messages = array(
-			1 => array('message'=>__('Could not delete component'), 'type' => 'error'),
-			2 => array('message'=>__('Component to delete not found'), 'type' => 'error'),
-			3 => array('message'=>__('Component deleted successfuly'), 'type' => 'updated'),
-		);
-		return $messages;
+	private static function exit_sending_json($answer){
+		if( !WP_DEBUG ){
+			$content_already_echoed = ob_get_contents();
+			if( !empty($content_already_echoed) ){
+				//TODO : allow to add $content_already_echoed in the answer as a JSON data for debbuging
+				ob_end_clean();
+			}
+		}
+		
+		header('Content-type: application/json');
+		echo json_encode($answer);
+		exit();
 	}
+	
 }
 
 WppcComponentsBoSettings::hooks();

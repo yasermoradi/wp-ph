@@ -15,7 +15,7 @@ abstract class WppcComponentType{
 	abstract public function get_ajax_action_html_answer($action,$params);
 	abstract public function echo_form_fields($component);
 	abstract public function echo_form_javascript();
-	abstract public function get_options_from_posted_form();
+	abstract public function get_options_from_posted_form($data);
 	
 	public function get_data(WppcComponent $component,$globals){
 		$this->data['globals'] = $globals;
@@ -99,9 +99,9 @@ class WppcComponentsTypes{
 		}
 	}
 	
-	public static function get_component_type_options_from_posted_form($component_type){
+	public static function get_component_type_options_from_posted_form($component_type,$data){
 		if( self::component_type_exists($component_type) ){
-			return self::factory($component_type)->get_options_from_posted_form();
+			return self::factory($component_type)->get_options_from_posted_form($data);
 		}
 	}
 	

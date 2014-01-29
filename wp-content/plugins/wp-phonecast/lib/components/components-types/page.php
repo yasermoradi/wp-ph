@@ -106,8 +106,8 @@ class WppcComponentTypePage extends WppcComponentType{
 	public function get_ajax_action_html_answer($action,$params){
 	}
 	
-	public function get_options_from_posted_form(){
-		$page_id = $_POST['page_id'];
+	public function get_options_from_posted_form($data){
+		$page_id = $data['page_id'];
 		$options = array('page' => $page_id);
 		return $options;
 	}

@@ -2,6 +2,14 @@
 require_once(dirname(__FILE__) .'/navigation-items-storage.php');
 require_once(dirname(__FILE__) .'/navigation-bo-settings.php');
 
+class WppcNavigation{
+	
+	public static function get_app_navigation($app_post_id){
+		return WppcNavigationItemsStorage::get_navigation_items($app_post_id);
+	}
+	
+}
+
 class WppcNavigationItem{
 
 	protected $component_id = '';
