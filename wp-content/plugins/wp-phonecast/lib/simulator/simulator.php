@@ -64,7 +64,7 @@ class WppcSimulator{
 				
 					<?php 
 						$appli_dir_url = WppcBuild::get_appli_dir_url();
-						$appli_url = $appli_dir_url .'/index.html?wppc_app_id='. $app_id;
+						$appli_url = WppcBuild::get_appli_index_url($app_id);
 						$wp_ws_url = WppcWebServices::get_app_web_service_url($app_id) .'/synchronization';
 					?>
 						

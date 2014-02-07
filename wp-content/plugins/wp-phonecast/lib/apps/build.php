@@ -23,6 +23,8 @@ class WppcBuild{
 	public static function inner_build_box($post,$current_box){
 		$debug_mode = self::get_app_debug_mode_raw($post->ID);
 		$wp_ws_url = WppcWebServices::get_app_web_service_url($post->ID) .'/synchronization';
+		$appli_url = self::get_appli_index_url($post->ID);
+		
 		?>
 		<label><?php _e('Debug Mode') ?> : </label>
 		<select name="wppc_app_debug_mode">
@@ -34,6 +36,9 @@ class WppcBuild{
 		<br/>
 		<br/>
 		<a href="<?php echo WppcSimulator::get_simulator_url($post->ID) ?>"><?php _e('View application in simulator') ?></a>
+		<br/>
+		<br/>
+		<a href="<?php echo $appli_url ?>"><?php _e('View application in browser') ?></a>
 		<br/>
 		<br/>
 		<a href="<?php echo self::get_appli_dir_url() .'/config.js?wppc_app_id='. $post->ID ?>"><?php _e('View config file') ?></a>
@@ -77,6 +82,12 @@ class WppcBuild{
 	public static function get_appli_dir_url(){
 		return plugins_url('appli' , dirname(dirname(__FILE__)) );
 	}
+	
+	public static function get_appli_index_url($app_id){
+		return self::get_appli_dir_url() .'/index.html?wppc_app_id='. $app_id;
+	}
+	
+	
 }
 
 WppcBuild::hooks();
