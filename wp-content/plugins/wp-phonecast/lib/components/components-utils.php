@@ -26,10 +26,6 @@ class WppcComponentsUtils{
 	
 		//Replace classes for images with captions :
 		$content = preg_replace('/<div id="attachment_(\d+)"[^>]*?>/is', '<div id="attachment_$1" class="image-content" >', $content);
-		$content = preg_replace('/<p class="wp-caption-text">/is', '<p class="image-legend">', $content);
-	
-		//Replace notes attributes :
-		$content = preg_replace('/<a href=\'#fn-\d+-\d+\' id=\'fnref-\d+-(\d+)\' title=\'([^"]*?)\'>/is', '<a id="_$1" title="$2" href="#">', $content);
 	
 		$content = strip_tags($content,'<br/><br><p><div><h1><h2><h3><h4><h5><h6><a><span><sup><sub><img><i><em><strong><b><ul><ol><li><blockquote>');
 	

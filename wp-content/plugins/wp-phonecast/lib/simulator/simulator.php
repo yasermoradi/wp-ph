@@ -63,9 +63,9 @@ class WppcSimulator{
 				<?php if( WppcApps::app_exists($app_id) ): ?>
 				
 					<?php 
-						$base_url = plugins_url('appli' , dirname(dirname(__FILE__)) );
-						$appli_url = $base_url .'/index.html?wppc_app_id='. $app_id;
-						$wp_ws_url = get_bloginfo('wpurl') .'/phonecast-api/'. $app_id .'/synchronization';
+						$appli_dir_url = WppcBuild::get_appli_dir_url();
+						$appli_url = $appli_dir_url .'/index.html?wppc_app_id='. $app_id;
+						$wp_ws_url = WppcWebServices::get_app_web_service_url($app_id) .'/synchronization';
 					?>
 						
 					<div id="simulator">
@@ -75,7 +75,7 @@ class WppcSimulator{
 					<div id="debug-infos">
 						<h3><a href="<?php echo $appli_url ?>"><?php _e('Preview in browser') ?></a></h3>
 						
-						<h3><a href="<?php echo $base_url .'/config.js?wppc_app_id='. $app_id ?>"><?php _e('View config file') ?></a></h3>
+						<h3><a href="<?php echo $appli_dir_url .'/config.js?wppc_app_id='. $app_id ?>"><?php _e('View config file') ?></a></h3>
 						
 						<br/><br/>
 						<h3><?php _e('Web services') ?> :</h3>

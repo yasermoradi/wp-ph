@@ -33,6 +33,8 @@ class WppcConfigFile{
 							
 							$app_main_infos = WppcApps::get_app_main_infos($app_id);
 							$app_title = $app_main_infos['name'];
+							
+							$debug_mode = WppcBuild::get_app_debug_mode($app_id);
 		
 							header("Content-type: text/javascript;  charset=utf-8");
 ?>
@@ -44,7 +46,8 @@ define(function (require) {
     return {
 		wp_ws_url : '<?php echo $wp_ws_url ?>',
 		theme : '<?php echo addslashes($theme) ?>',
-		app_title : "<?php echo addslashes($app_title) ?>"
+		app_title : '<?php echo addslashes($app_title) ?>',
+		debug_mode : '<?php echo $debug_mode ?>'
 	};
 
 });
