@@ -29,6 +29,8 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			
 			$this->set_specific('ids',array_keys($posts_ids));
 			$this->set_specific('total',$total);
+			$this->set_specific('query',array('type'=>'taxonomy','taxonomy'=>$options['taxonomy'],
+										      'terms'=>is_array($options['term']) ? $options['term'] : array($options['term'])));
 			$this->set_globals('posts',$posts_ids);
 		}
 		
