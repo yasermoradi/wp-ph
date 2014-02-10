@@ -28,8 +28,8 @@ require(['root/config'],function(Config){
 	    }
 	});
 	
-	require(['jquery', 'core/app', 'core/router', 'core/region-manager', 'core/phonegap-utils'], 
-			function ($, App, Router, RegionManager, PhoneGap) {
+	require(['jquery', 'core/app-utils', 'core/app', 'core/router', 'core/region-manager', 'core/phonegap-utils'], 
+			function ($, Utils, App, Router, RegionManager, PhoneGap) {
 	    
 			var launch = function() { 
 		  
@@ -41,8 +41,10 @@ require(['root/config'],function(Config){
 		  
 				RegionManager.buildLayout();
 
+				RegionManager.buildHeader();
+				
 				RegionManager.buildMenu();
-		  
+				
 				App.router = new Router();		 
 		  
 				require(['theme/js/functions'],
@@ -65,7 +67,7 @@ require(['root/config'],function(Config){
 								},
 								function(){
 									Backbone.history.start();
-									console.log("Sync error");
+									Utils.log("Error : App could not synchronize with website.");
 									RegionManager.stopWaiting();
 									PhoneGap.hideSplashScreen();
 								},
@@ -74,7 +76,7 @@ require(['root/config'],function(Config){
 					
 						},
 						function(error){ 
-							console.log('Require theme/js/functions.js error', error); 
+							Utils.log('Warning : theme/js/functions.js not found', error); 
 						}
 				);  
 		  

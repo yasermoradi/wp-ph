@@ -2,8 +2,8 @@ define(function (require) {
  
     "use strict";
  
-    var $              = require('jquery'),
-        Backbone       = require('backbone'),
+    var Backbone       = require('backbone'),
+    	Utils          = require('core/app-utils'),
         RegionManager  = require("core/region-manager");
     
     var default_route = '';
@@ -31,7 +31,8 @@ define(function (require) {
         	require(["core/app"],function(App){
         		var component = App.components.get(component_id);
         		if( component ){
-	        		switch(component.get('type')){
+        			var component_type = component.get('type');
+	        		switch(component_type){
 	        			case 'posts-list':
 	        				var data = component.get('data');
 	        				require(["core/models/items"],function(Items){
@@ -41,7 +42,7 @@ define(function (require) {
 		        					items.add(global.get(post_id));
 		            	  		});
 		        				require(["core/views/archive"],function(ArchiveView){
-		        					App.setCurrentPage('archive',component_id);
+		        					App.addToHistory('list',component_id,'',data);
 		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
 		        				});
 	        				});
@@ -52,17 +53,17 @@ define(function (require) {
 	        				if( global ){
 	        					var page = global.get(data.id);
 	        					if( page ){
-			        				App.setCurrentPage('page',component_id,data.id);
+			        				App.addToHistory('page',component_id,data.id,data);
 			        				require(["core/views/single"],function(SingleView){
 			        					RegionManager.show(new SingleView({post:page}));
 			        				});
 	        					}
 	        				}
 	        				break;
-	        			case 'navigation':
-	        				App.setCurrentPage('navigation',component_id,{});
+	        			/*case 'navigation':
+	        				App.addToHistory('navigation',component_id,'',data);
 	        				RegionManager.show(RegionManager.getMenuView());
-	        				break;
+	        				break;*/
 	        		}
         		}else{
         			App.router.default_route();
@@ -79,7 +80,7 @@ define(function (require) {
 	        	if( global ){
 		        	var post = global.get(post_id);
 		        	if( post ){
-		        		App.setCurrentPage('single','',post_id);
+		        		App.addToHistory('single','',post_id);
 		        		RegionManager.show(new SingleView({post:post}));
 		        	}else{
 	        			App.router.default_route();
@@ -96,12 +97,12 @@ define(function (require) {
 	        	App.getPostComments(
 	        		post_id,
 	        		function(comments,post){
-	        			App.setCurrentPage('comments','',post_id);
+	        			App.addToHistory('comments','',post_id);
 	        			RegionManager.show(new CommentsView({comments:comments,post:post}));
 	        			RegionManager.stopWaiting();
 		        	},
 		        	function(error){
-		        		console.log('App.getPostComments Error',error);
+		        		Utils.log('Error : App.getPostComments failed',error);
 		        		RegionManager.stopWaiting();
 		        	}
 		        );

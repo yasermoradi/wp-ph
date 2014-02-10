@@ -5,13 +5,13 @@ define(function (require) {
       var $                   = require('jquery'),
       	  _                   = require('underscore'),
           Backbone            = require('backbone'),
-          RegionManager       = require("core/region-manager"),
           Components          = require('core/models/components'),
           Globals             = require('core/models/globals'),
           Navigation          = require('core/models/navigation'),
           Items               = require('core/models/items'),
           Comments            = require('core/models/comments'),
           Config              = require('root/config'),
+          Utils               = require('core/app-utils'),
           sha256              = require('core/lib/sha256');
       
 	  var app = {};
@@ -53,8 +53,6 @@ define(function (require) {
 			  }
 		  });
 		  
-		  //console.log('Total : wait_events.length',wait_events.length);
-		  
 		  _.each(initializers, function(initializer,index){
 			  if( initializer.wait ){
 				  initializer.callback.call(initializer.obj,function(){
@@ -83,14 +81,87 @@ define(function (require) {
 		  app.router.setDefaultRoute('#component-'+ first_nav_component_id);
 	  };
 	  
-	  var currentPage = {page_type:'',component_id:'',item_id:''};
-	  app.setCurrentPage = function(page_type,component_id,item_id){
-		  currentPage.page_type = page_type;
-		  currentPage.component_id = component_id;
-		  currentPage.item_id = item_id;
+	  //--------------------------------------------------------------------------
+	  //History :
+	  var history_stack = [];
+	  
+	  var history_push = function (page_type,component_id,item_id,fragment,data){
+		  history_stack.push({	page_type:page_type,
+				component_id:component_id,
+				item_id:item_id,
+				fragment:fragment,
+				data:(data != undefined) ? data : {}
+			 });
 	  };
-	  app.getCurrentPage = function(){
-		  return currentPage;
+		
+	  app.addToHistory = function(page_type,component_id,item_id,data,force_flush){
+		  
+		  var force_flush_history = force_flush != undefined && force_flush == true;
+		  
+		  var current_page = app.getCurrentPageData();
+		  var previous_page = app.getPreviousPageData();
+		  var current_fragment = Backbone.history.fragment;
+		  
+		  if( current_page.page_type != page_type || current_page.component_id != component_id 
+			  || current_page.item_id != item_id || current_page.fragment != current_fragment ){
+			  
+			  if( force_flush_history ){
+				  history_stack = [];
+			  }
+			  
+			  if( page_type == 'list' ){
+				  history_stack = [];
+				  history_push(page_type,component_id,item_id,current_fragment,data);
+			  }else if( page_type == 'single' ){
+				  if( current_page.page_type == 'list' ){
+					  history_push(page_type,component_id,item_id,current_fragment);
+				  }else if( current_page.page_type == 'comments' ){
+					  if( previous_page.page_type == 'single' && previous_page.item_id == item_id ){
+						  history_stack.pop();
+					  }else{
+						  history_stack = [];
+						  history_push(page_type,component_id,item_id,current_fragment);
+					  }
+				  }else{
+					  history_stack = [];
+					  history_push(page_type,component_id,item_id,current_fragment);
+				  }
+			  }else if( page_type == 'page' ){
+				  history_stack = [];
+				  history_push(page_type,component_id,item_id,current_fragment,data);
+			  }else if( page_type == 'comments' ){
+				  //if( current_page.page_type == 'single' && current_page.item_id == item_id ){
+					  history_push(page_type,component_id,item_id,current_fragment);
+				  //}
+			  }
+			  
+		  }
+		  
+	  };
+	  
+	  /**
+	   * Returns infos about the currently displayed page.
+	   * @returns {page_type:string, component_id:string, item_id:integer, fragment:string}
+	   * Core page_types are "list", "single", "page" "comments". 
+	   */
+	  app.getCurrentPageData = function(){
+		  var current_page = {};
+		  if( history_stack.length ){
+			  current_page = history_stack[history_stack.length-1];
+		  }
+		  return current_page;
+	  };
+	  
+	  /**
+	   * Returns infos about the page displayed previously.
+	   * @returns {page_type:string, component_id:string, item_id:integer, fragment:string} or {} if no previous page 
+	   */
+	  app.getPreviousPageData = function(){
+		  var previous_page = {};
+		  if( history_stack.length > 1 ){
+			  previous_page = history_stack[history_stack.length-2];
+		  }
+		  return previous_page;
 	  };
 	  
 	  //--------------------------------------------------------------------------
@@ -149,7 +220,7 @@ define(function (require) {
 					  });
 					  globals_keys.saveAll();
 					  
-					  console.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
+					  Utils.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
 
 					  cb_ok();
 				},
@@ -171,7 +242,6 @@ define(function (require) {
     	  
     	  if( post != undefined ){
 	    	  $.get(Config.wp_ws_url + ws_url, function(data) {
-	    		  console.log('data',data);
 	    		  	_.each(data.items,function(value, key, list){
 	    		  		comments.add(value);
 	    	  		});
@@ -192,12 +262,12 @@ define(function (require) {
 	    		 if( components.length == 0 || force ){
 	    			 syncWebService(cb_ok,cb_error);
 	    		 }else{
-	    			 console.log('Components retrieved from local storage.',components);
+	    			 Utils.log('Components retrieved from local storage.',components);
 	    			 app.navigation.fetch({'success': function(navigation, response_nav, options_nav){
 	    	    		 if( navigation.length == 0 ){
 	    	    			 syncWebService(cb_ok,cb_error);
 	    	    		 }else{
-	    	    			 console.log('Navigation retrieved from local storage.',navigation);
+	    	    			 Utils.log('Navigation retrieved from local storage.',navigation);
 	    	    			 globals_keys.fetch({'success': function(global_keys, response_global_keys, options_global_keys){
 	    	    	    		 if( global_keys.length == 0 ){
 	    	    	    			 syncWebService(cb_ok,cb_error);
@@ -221,7 +291,7 @@ define(function (require) {
 	    	    	    				 if( app.globals.length == 0 ){
 		    	    	    				 syncWebService(cb_ok,cb_error);
 		    	    	    			 }else{
-		    	    	    				 console.log('Global items retrieved from local storage.',app.globals);
+		    	    	    				 Utils.log('Global items retrieved from local storage.',app.globals);
 		    	    	    				 cb_ok();
 		    	    	    			 }
 	    	    	    		     });

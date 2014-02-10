@@ -11,13 +11,18 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		window.scrollTo(0,0);
 	}
 	
-	$('#refresh-button').bind('click', function(e){
-		e.preventDefault();
-		closeMenu();
-		App.refresh(function(){
-			$('#feedback').removeClass('error').html('Content updated successfully :)').slideDown();
+	function updateHeaderEvents(){
+		$('#refresh-button').unbind().bind('click', function(e){
+			e.preventDefault();
+			closeMenu();
+			App.refresh(function(){
+				$('#feedback').removeClass('error').html('Content updated successfully :)').slideDown();
+			});
 		});
-	});
+	}
+	
+	App.setAutoBackButton($('#go-back')); //Automatically shows and hide Back button according to current page
+	App.setAutoBodyClass(true); //Adds class on <body> according to the current page
 	
 	App.on('refresh:start',function(){
 		$('#refresh-button').addClass('refreshing');
@@ -36,33 +41,18 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		$('#feedback').slideUp();
 	});
 	
-	//The menu can be dynamically refreshed, so we use "on" on parent div (which is always there):
-	$('#navbar-collapse').on('click','a',function(e){
-		//Close menu when we click a link inside it
-		closeMenu();
-	});
-	
 	$('#container').on('click','li.media',function(e){
 		var navigate_to = $('a',this).attr('href');
 		App.navigate(navigate_to);
 	});
 	
-	App.setAutoBackButton($('#go-back')); //Automatically shows and hide Back button according to current page
+	RegionManager.on('header:render',function(current_page,headerView){
+		updateHeaderEvents();
+	});
 	
 	RegionManager.on('page:showed',function(current_page,view){
 		scrollTop();
-		if( current_page.page_type == 'single' ){
-			
-		}
-		else if( current_page.page_type == 'page' ){
-			
-		}
-		else if( current_page.page_type == 'list' ){
-			
-		}else if( current_page.page_type == 'comments' ){
-			
-		}
-		
+		//current_page.page_type can be 'list','single','page','comments'
 	});
 	
 });

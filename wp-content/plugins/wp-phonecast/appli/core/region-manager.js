@@ -5,7 +5,9 @@ define(function (require) {
 	var $                   = require('jquery'), 
 		_                   = require('underscore'),
 		Backbone            = require('backbone'),
+		Utils               = require('core/app-utils'),
 		HeadView            = require('core/views/head'),
+		HeaderView          = require('core/views/header'),
 		MenuView            = require('core/views/menu'),
 		LayoutView          = require('core/views/layout');
       
@@ -17,18 +19,19 @@ define(function (require) {
 			this.onClose();
 		}
 		
-		console.log('view.prototype.close()',this);
-		
 		this.unbind(); // this will unbind all listeners to events from this view. This is probably not necessary because this view will be garbage collected.
 		this.remove(); // uses the default Backbone.View.remove() method which removes this.el from the DOM and removes DOM events.
 	};
 	
-	var RegionManager = (function (Backbone, $, _, LayoutView) {
+	var RegionManager = (function (Backbone, $, _) {
 	    
 		var headView = null;
 		
 		var layoutView = null;
 		var elLayout = "#app-layout";
+		
+		var headerView = null;
+		var elHeader = "#app-header";
 		
 		var currentView = null;
 	    var el = "#app-container";
@@ -54,6 +57,14 @@ define(function (require) {
 	    	if( layoutView === null ){
 	    		layoutView = new LayoutView({el:elLayout});
 	    		layoutView.render();
+	    	}
+	    };
+	    
+	    region.buildHeader = function(){
+	    	if( headerView === null ){
+	    		headerView = new HeaderView({el:elHeader,do_if_template_exists:function(view){
+	    			view.render();
+	    		}});
 	    	}
 	    };
 	    
@@ -83,6 +94,7 @@ define(function (require) {
 	    			&& (!$(elMenu).html().length || (force_reload!=undefined && force_reload) ) ){
 		    		menuView.render();
 		    		$(elMenu).empty().append(menuView.el);
+		    		Utils.log('Render navigation',force_reload,menuView);
 	    		}
 	    	}else{
 	    		if( $(elMenu).html().length ){
@@ -93,6 +105,19 @@ define(function (require) {
 	    
 	    region.getMenuView = function(){
 	    	return menuView;
+	    };
+	    
+	    var renderSubRegions = function(){
+	    	if( headerView.templateExists() ){
+		    	headerView.render();
+		    	Utils.log('Render header',headerView);
+		    	if( headerView.containsMenu() ){
+		    		showMenu(true);
+		    	}
+		    	require(['core/app'],function(App){
+			    	vent.trigger('header:render',App.getCurrentPageData(),headerView);
+			    });
+	    	}
 	    };
 	    
 	    var closeView = function (view) {
@@ -114,14 +139,18 @@ define(function (require) {
 	    var openView = function (view) {
 	    	
 	    	if( !view.isStatic || !$(view.el).html().length ){
-	    		console.log('Open view, static = ', view.isStatic);
+	    		if( view.isStatic != undefined && view.isStatic ){
+	    			Utils.log('Open static view',view);
+	    		}else{
+	    			Utils.log('Open view',view);
+	    		}
 				view.render();
 				$(el).empty().append(view.el);
 	     	    if(view.onShow) {
 	     	        view.onShow();
 	     	   	}
 	    	}else{
-	    		console.log('Open static view');
+	    		Utils.log('Re-open existing static view',view);
 	    		$(el).empty().append(view.el);
 	    	}
 	    	
@@ -156,7 +185,7 @@ define(function (require) {
 	    			region.showSimple(view);
 	    		}
 	    	}
-		    	
+	    	
 	    };
 	    
 	    region.showSimple = function(view) {
@@ -167,10 +196,10 @@ define(function (require) {
 	    	currentView = view;
 		    openView(currentView);
 		    
-		    console.log('View opened : ', currentView, currentView.cid, currentView.isStatic );
+		    renderSubRegions();
 		    
 		    require(['core/app'],function(App){
-		    	vent.trigger('page:showed',App.getCurrentPage(),currentView);
+		    	vent.trigger('page:showed',App.getCurrentPageData(),currentView);
 		    });
 	    };
 	    
@@ -184,7 +213,7 @@ define(function (require) {
 	    
 	    return region;
 	    
-	})(Backbone, $, _, LayoutView);
+	})(Backbone, $, _);
 	
 	return RegionManager;
 });
