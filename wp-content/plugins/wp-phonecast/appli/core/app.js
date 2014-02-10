@@ -164,6 +164,15 @@ define(function (require) {
 		  return previous_page;
 	  };
 	  
+	  app.getPreviousPageLink = function(){
+		  var previous_page_link = '';
+		  var previous_page = app.getPreviousPageData();
+		  if( !_.isEmpty(previous_page) ){
+			  previous_page_link = '#'+ previous_page.fragment;
+		  }
+		  return previous_page_link;
+	  };
+	  
 	  //--------------------------------------------------------------------------
 	  //App items data :
 	  app.components = new Components;

@@ -5,11 +5,7 @@ define(function (require) {
 	var $                   = require('jquery'), 
 		_                   = require('underscore'),
 		Backbone            = require('backbone'),
-		Utils               = require('core/app-utils'),
-		HeadView            = require('core/views/head'),
-		HeaderView          = require('core/views/header'),
-		MenuView            = require('core/views/menu'),
-		LayoutView          = require('core/views/layout');
+		Utils               = require('core/app-utils');
       
 	Backbone.View.prototype.close = function(){
 		
@@ -45,46 +41,76 @@ define(function (require) {
 	    region.on = function(event,callback){
 	    	vent.on(event,callback);
 	    };
+	    region.off = function(event,callback){
+	    	vent.off(event,callback);
+	    };
 	 
-	    region.buildHead = function(){
+	    region.buildHead = function(cb){
 	    	if( headView === null ){
-		    	headView = new HeadView();
-				headView.render();
+	    		require(['core/views/head'],function(HeadView){
+	    			headView = new HeadView();
+					headView.render();
+					cb();
+	    		});
+	    	}else{
+	    		cb();
 	    	}
 	    };
 	    
-	    region.buildLayout = function(){
+	    region.buildLayout = function(cb){
 	    	if( layoutView === null ){
-	    		layoutView = new LayoutView({el:elLayout});
-	    		layoutView.render();
+	    		require(['core/views/layout'],function(LayoutView){
+		    		layoutView = new LayoutView({el:elLayout});
+		    		layoutView.render();
+		    		cb();
+	    		});
+	    	}else{
+	    		cb();
 	    	}
 	    };
 	    
-	    region.buildHeader = function(){
+	    region.buildHeader = function(cb){
 	    	if( headerView === null ){
-	    		headerView = new HeaderView({el:elHeader,do_if_template_exists:function(view){
-	    			view.render();
-	    		}});
+	    		require(['core/views/header'],
+	    				function(HeaderView){
+				    		headerView = new HeaderView({
+				    			el:elHeader,
+				    			do_if_template_exists:function(view){
+					    			view.render();
+					    			cb();
+					    		},
+					    		do_if_no_template:function(){
+					    			cb();
+					    		}
+					    	});
+	    				}
+	    		);
+	    	}else{
+	    		cb();
 	    	}
 	    };
 	    
-	    region.buildMenu = function(force_reload){
+	    region.buildMenu = function(cb,force_reload){
 	    	
 	    	force_reload = (force_reload!=undefined && force_reload);
 	    	
 	    	if( menuView === null || force_reload ){
-	    		menuView = new MenuView();
-	    		require(['core/app'],function(App){
-	    			menuView.resetAll();
-		    		App.navigation.each(function(element, index){
-		    			var component = App.components.get(element.get('component_id'));
-		    			if( component ){
-		    				menuView.addItem(component.get('id'),component.get('type'),component.get('label'));
-		    			}
-		   		  	});
-		    		showMenu(force_reload);
+	    		require(['core/views/menu'],function(MenuView){
+		    		menuView = new MenuView();
+		    		require(['core/app'],function(App){
+		    			menuView.resetAll();
+			    		App.navigation.each(function(element, index){
+			    			var component = App.components.get(element.get('component_id'));
+			    			if( component ){
+			    				menuView.addItem(component.get('id'),component.get('type'),component.get('label'));
+			    			}
+			   		  	});
+			    		showMenu(force_reload);
+			    		cb();
+		    		});
 	    		});
-	   		  	
+	    	}else{
+	    		cb();
 	    	}
 	    };
 	    

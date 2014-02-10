@@ -20,12 +20,6 @@ img{
 	max-width:270px;
 }
 
-#go-back{
-	position: fixed;
-	bottom: 7px;
-	left: 7px;
-}
-
 ul.media-list .comments{
 	font-style:italic;
 }
@@ -63,7 +57,7 @@ ul.media-list .comments{
 	padding:12px 0 0 15px;
 }
 
-#refresh-button{
+#refresh-button, #go-back{
 	font-size: 24px;
 	padding:0;	
 }

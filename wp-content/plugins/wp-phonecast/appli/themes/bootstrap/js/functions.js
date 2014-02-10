@@ -19,6 +19,15 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		});
 	});
 	
+	//Automatically shows and hide Back button according to current page
+	App.setAutoBackButton($('#go-back'),function(back_button_showed){
+		if(back_button_showed){
+			$('#refresh-button').hide();
+		}else{
+			$('#refresh-button').show();
+		}
+	}); 
+	
 	App.on('refresh:start',function(){
 		$('#refresh-button').addClass('refreshing');
 	});
@@ -36,33 +45,15 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		$('#feedback').slideUp();
 	});
 	
-	//The menu can be dynamically refreshed, so we use "on" on parent div (which is always there):
-	$('#navbar-collapse').on('click','a',function(e){
-		//Close menu when we click a link inside it
-		closeMenu();
-	});
-	
+	//Allow to click anywhere on li to go to post detail :
 	$('#container').on('click','li.media',function(e){
 		var navigate_to = $('a',this).attr('href');
 		App.navigate(navigate_to);
 	});
 	
-	App.setAutoBackButton($('#go-back')); //Automatically shows and hide Back button according to current page
-	
 	RegionManager.on('page:showed',function(current_page,view){
 		scrollTop();
-		if( current_page.page_type == 'single' ){
-			
-		}
-		else if( current_page.page_type == 'page' ){
-			
-		}
-		else if( current_page.page_type == 'list' ){
-			
-		}else if( current_page.page_type == 'comments' ){
-			
-		}
-		
+		//current_page.page_type can be 'list','single','page','comments'
 	});
 	
 });

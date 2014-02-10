@@ -35,50 +35,54 @@ require(['root/config'],function(Config){
 		  
 				RegionManager.startWaiting();
 				  
-				RegionManager.buildHead();
-		  
-				App.initialize();
-		  
-				RegionManager.buildLayout();
-
-				RegionManager.buildHeader();
-				
-				RegionManager.buildMenu();
-				
-				App.router = new Router();		 
-		  
-				require(['theme/js/functions'],
-						function(){ 
-							App.sync(
-								function(){
-		  
-									App.resetDefaultRoute();
-				  
-									Backbone.history.start();
-				  
-									//Refresh at app launch : as the theme is now loaded, use theme-app :
-									require(['core/theme-app'],function(ThemeApp){
-										ThemeApp.refresh();
-									});
-								  
-									RegionManager.stopWaiting();
-									PhoneGap.hideSplashScreen();
-								  
-								},
-								function(){
-									Backbone.history.start();
-									Utils.log("Error : App could not synchronize with website.");
-									RegionManager.stopWaiting();
-									PhoneGap.hideSplashScreen();
-								},
-								false //true to force refresh local storage at each app launch.
-							);
+				RegionManager.buildHead(function(){
 					
-						},
-						function(error){ 
-							Utils.log('Warning : theme/js/functions.js not found', error); 
-						}
-				);  
+					App.initialize();
+					  
+					RegionManager.buildLayout(function(){
+						
+						RegionManager.buildHeader(function(){
+							
+							App.router = new Router();		 
+							  
+							require(['theme/js/functions'],
+									function(){ 
+										App.sync(
+											function(){
+												RegionManager.buildMenu(function(){ //Menu items are loaded by App.sync
+													App.resetDefaultRoute();
+								  
+													Backbone.history.start();
+								  
+													//Refresh at app launch : as the theme is now loaded, use theme-app :
+													require(['core/theme-app'],function(ThemeApp){
+														ThemeApp.refresh();
+													});
+												  
+													RegionManager.stopWaiting();
+													PhoneGap.hideSplashScreen();
+												});
+											},
+											function(){
+												Backbone.history.start();
+												Utils.log("Error : App could not synchronize with website.");
+												RegionManager.stopWaiting();
+												PhoneGap.hideSplashScreen();
+											},
+											false //true to force refresh local storage at each app launch.
+										);
+								
+									},
+									function(error){ 
+										Utils.log('Warning : theme/js/functions.js not found', error); 
+									}
+							);  
+							
+						});
+						
+					});
+					
+				});
 		  
 			};
 	  

@@ -1,22 +1,40 @@
+/**
+ * Defines "template tags like" functions that can be called from theme templates 
+ * and theme functions.js. 
+ */
 define(function (require) {
 
       "use strict";
 
       var _                   = require('underscore'),
           Config              = require('root/config'),
-          App                 = require('core/app');
+          App                 = require('core/app'),
+      	  ThemeApp            = require('core/theme-app');
           
       var themeFunctions = {};
       
-      themeFunctions.get_post_link = function(id){
+      themeFunctions.getCurrentPage = function(){
+    	  return App.getCurrentPageData();
+      };
+      
+      themeFunctions.getPreviousPageLink = function(){
+    	  return App.getPreviousPageLink();
+	  };
+	  
+      themeFunctions.get_post_link = function(post_id){
     	  //TODO Check if the post exists in the posts global 
-    	  return '#single-'+ id;
+    	  return '#single-'+ post_id;
       };
       
       themeFunctions.get_comments_link = function(post_id){
     	  //TODO Check if the post exists in the posts global
     	  return '#comments-'+ post_id;
       };
+      
+      themeFunctions.displayBackButton = function(){
+    	  var display = ThemeApp.getBackButtonDisplay();
+    	  return display == 'show';
+	  };
       
       themeFunctions.is_single = function(post_id){
     	  var page_data = App.getCurrentPageData();

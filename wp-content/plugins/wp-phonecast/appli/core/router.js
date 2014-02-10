@@ -97,8 +97,12 @@ define(function (require) {
 	        	App.getPostComments(
 	        		post_id,
 	        		function(comments,post){
-	        			App.addToHistory('comments','',post_id);
-	        			RegionManager.show(new CommentsView({comments:comments,post:post}));
+	        			//Check if we are still on the right post :
+	        			var current_page = App.getCurrentPageData();
+	        			if( current_page.page_type == 'single' && current_page.item_id == post_id ){
+		        			App.addToHistory('comments','',post_id);
+		        			RegionManager.show(new CommentsView({comments:comments,post:post}));
+	        			}
 	        			RegionManager.stopWaiting();
 		        	},
 		        	function(error){
