@@ -1,4 +1,4 @@
-define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'],function($,RegionManager,App){
+define(['jquery','core/region-manager','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'],function($,RegionManager,App,Storage){
 	
 	function closeMenu(){
 		var navbar_toggle_button = $(".navbar-toggle").eq(0);
@@ -34,6 +34,7 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 	
 	App.on('refresh:end',function(){
 		scrollTop();
+		Storage.clear('scroll-pos');
 		$('#refresh-button').removeClass('refreshing');
 	});
 	
@@ -51,9 +52,31 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		App.navigate(navigate_to);
 	});
 	
-	RegionManager.on('page:showed',function(current_page,view){
-		scrollTop();
+	//The menu can be dynamically refreshed, so we use "on" on parent div (which is always here):
+	$('#navbar-collapse').on('click','a',function(e){
+		//Close menu when we click a link inside it
+		closeMenu();
+	});
+	
+	RegionManager.on('page:leave',function(current_page,view){
 		//current_page.page_type can be 'list','single','page','comments'
+		if( current_page.page_type == 'list' ){
+			Storage.set('scroll-pos',current_page.fragment,$('body').scrollTop());
+		}
+	});
+	
+	RegionManager.on('page:showed',function(current_page,view){
+		//current_page.page_type can be 'list','single','page','comments'
+		if( current_page.page_type == 'list' ){
+			var pos = Storage.get('scroll-pos',current_page.fragment);
+			if( pos !== null ){
+				$('body').scrollTop(pos);
+			}else{
+				scrollTop();
+			}
+		}else{
+			scrollTop();
+		}
 	});
 	
 });

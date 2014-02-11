@@ -42,6 +42,7 @@ define(function (require) {
 		        					items.add(global.get(post_id));
 		            	  		});
 		        				require(["core/views/archive"],function(ArchiveView){
+		        					RegionManager.leave();
 		        					App.addToHistory('list',component_id,'',data);
 		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
 		        				});
@@ -55,12 +56,14 @@ define(function (require) {
 	        					if( page ){
 			        				App.addToHistory('page',component_id,data.id,data);
 			        				require(["core/views/single"],function(SingleView){
+			        					RegionManager.leave();
 			        					RegionManager.show(new SingleView({post:page}));
 			        				});
 	        					}
 	        				}
 	        				break;
 	        			/*case 'navigation':
+	        			    RegionManager.leave();
 	        				App.addToHistory('navigation',component_id,'',data);
 	        				RegionManager.show(RegionManager.getMenuView());
 	        				break;*/
@@ -80,6 +83,7 @@ define(function (require) {
 	        	if( global ){
 		        	var post = global.get(post_id);
 		        	if( post ){
+		        		RegionManager.leave(App.getCurrentPageData());
 		        		App.addToHistory('single','',post_id);
 		        		RegionManager.show(new SingleView({post:post}));
 		        	}else{
@@ -100,7 +104,8 @@ define(function (require) {
 	        			//Check if we are still on the right post :
 	        			var current_page = App.getCurrentPageData();
 	        			if( current_page.page_type == 'single' && current_page.item_id == post_id ){
-		        			App.addToHistory('comments','',post_id);
+	        				RegionManager.leave(current_page);
+	        				App.addToHistory('comments','',post_id);
 		        			RegionManager.show(new CommentsView({comments:comments,post:post}));
 	        			}
 	        			RegionManager.stopWaiting();

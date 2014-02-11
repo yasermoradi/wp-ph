@@ -46,6 +46,12 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		App.navigate(navigate_to);
 	});
 	
+	//The menu can be dynamically refreshed, so we use "on" on parent div (which is always here):
+	$('#navbar-collapse').on('click','a',function(e){
+		//Close menu when we click a link inside it
+		closeMenu();
+	});
+	
 	RegionManager.on('page:showed',function(current_page,view){
 		scrollTop();
 		//current_page.page_type can be 'list','single','page','comments'

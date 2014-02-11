@@ -13,6 +13,19 @@ define(function (require) {
           
       var themeFunctions = {};
       
+      /**
+       * Retrieves current page infos :
+       * @return JSON object containing :
+       * - page_type : list, single, comments, page
+       * - fragment : unique page url id (what's after # in url)
+       * - component_id : component slug id, if displaying a component page (list, page)
+       * - item_id : current page id, if displaying single content (post,page)
+       * - data : contains more specific data depending on which page type is displayed
+       * 	> total : total number of posts for lists
+       * 	> query : query vars used to retrieve contents (taxonomy, terms...)
+       * 	> ids : id of posts displayed in lists
+       * 	> any other specific data depending on currently displayed component
+       */
       themeFunctions.getCurrentPage = function(){
     	  return App.getCurrentPageData();
       };

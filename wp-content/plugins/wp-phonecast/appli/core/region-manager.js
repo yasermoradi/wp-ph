@@ -5,6 +5,7 @@ define(function (require) {
 	var $                   = require('jquery'), 
 		_                   = require('underscore'),
 		Backbone            = require('backbone'),
+		App            		= require('core/app'),
 		Utils               = require('core/app-utils');
       
 	Backbone.View.prototype.close = function(){
@@ -97,17 +98,15 @@ define(function (require) {
 	    	if( menuView === null || force_reload ){
 	    		require(['core/views/menu'],function(MenuView){
 		    		menuView = new MenuView();
-		    		require(['core/app'],function(App){
-		    			menuView.resetAll();
-			    		App.navigation.each(function(element, index){
-			    			var component = App.components.get(element.get('component_id'));
-			    			if( component ){
-			    				menuView.addItem(component.get('id'),component.get('type'),component.get('label'));
-			    			}
-			   		  	});
-			    		showMenu(force_reload);
-			    		cb();
-		    		});
+	    			menuView.resetAll();
+		    		App.navigation.each(function(element, index){
+		    			var component = App.components.get(element.get('component_id'));
+		    			if( component ){
+		    				menuView.addItem(component.get('id'),component.get('type'),component.get('label'));
+		    			}
+		   		  	});
+		    		showMenu(force_reload);
+		    		cb();
 	    		});
 	    	}else{
 	    		cb();
@@ -140,9 +139,7 @@ define(function (require) {
 		    	if( headerView.containsMenu() ){
 		    		showMenu(true);
 		    	}
-		    	require(['core/app'],function(App){
-			    	vent.trigger('header:render',App.getCurrentPageData(),headerView);
-			    });
+			    vent.trigger('header:render',App.getCurrentPageData(),headerView);
 	    	}
 	    };
 	    
@@ -224,9 +221,11 @@ define(function (require) {
 		    
 		    renderSubRegions();
 		    
-		    require(['core/app'],function(App){
-		    	vent.trigger('page:showed',App.getCurrentPageData(),currentView);
-		    });
+		    vent.trigger('page:showed',App.getCurrentPageData(),currentView);
+	    };
+	    
+	    region.leave = function() {
+	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
 	    };
 	    
 	    region.startWaiting = function(){
