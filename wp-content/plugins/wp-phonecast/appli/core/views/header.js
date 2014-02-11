@@ -5,7 +5,7 @@ define(function (require) {
       var _                   = require('underscore'),
       	  Backbone            = require('backbone'),
       	  Config              = require('root/config'),
-      	  ThemeFunctions	  = require('core/theme-functions'),
+      	  ThemeTplTags	 	  = require('core/theme-tpl-tags'),
       	  Utils               = require('core/app-utils');
       
       var tpl = null;
@@ -31,7 +31,7 @@ define(function (require) {
 
   	    render : function(){
   	    	if( tpl !== null ){
-	  	    	var renderedContent = this.template({title : Config.app_title, menu : '<div id="app-menu"></div>', Functions : ThemeFunctions});
+	  	    	var renderedContent = this.template({title : Config.app_title, menu : '<div id="app-menu"></div>', TemplateTags : ThemeTplTags});
 	  	        $(this.el).html(renderedContent);
   	    	}
   	        return this;

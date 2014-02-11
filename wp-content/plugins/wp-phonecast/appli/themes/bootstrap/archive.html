@@ -21,7 +21,7 @@
 				<li class="media"> 
 						
 					<% if( post.featured_img.src && post.featured_img.src.length ){ %>
-						<a href="<%= Functions.get_post_link(post.id) %>" class="pull-left">
+						<a href="<%= TemplateTags.get_post_link(post.id) %>" class="pull-left">
 							<img class="media-object" style="width: 87px; height: 58px;" src="<%= post.featured_img.src %>">
 						</a>
 					<% } %>						

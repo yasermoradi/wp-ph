@@ -1,7 +1,7 @@
 <div id="single">
 	<h1><%= post.title %></h1>
 	<% if( post.nb_comments > 0 ){ %>
-		<a class="comments" href="<%= Functions.get_comments_link(post.id) %>"><% print(post.nb_comments) %>&nbsp;commentaire<% post.nb_comments > 1 ? print('s') : '' %></a>
+		<a class="comments" href="<%= TemplateTags.get_comments_link(post.id) %>"><% print(post.nb_comments) %>&nbsp;commentaire<% post.nb_comments > 1 ? print('s') : '' %></a>
 	<% } %>
 	<div id="single-content">
 		<% if(  post.featured_img && post.featured_img.src && post.featured_img.src.length ){ %>

@@ -5,7 +5,7 @@ define(function (require) {
     var $                   = require('jquery'),
         _                   = require('underscore'),
         Backbone            = require('backbone'),
-        ThemeFunctions		= require('core/theme-functions'),
+        ThemeTplTags		= require('core/theme-tpl-tags'),
         Tpl                 = require('text!theme/single.html');
 
     return Backbone.View.extend({
@@ -22,7 +22,7 @@ define(function (require) {
         },
 
         render : function() {
-        	var renderedContent = this.template({ post : this.post.toJSON(), Functions : ThemeFunctions });
+        	var renderedContent = this.template({ post : this.post.toJSON(), TemplateTags : ThemeTplTags });
             $(this.el).html(renderedContent); 
             return this;
         }

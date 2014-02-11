@@ -12,7 +12,7 @@
 			    	  var year = date.getUTCFullYear();
 		  		%>
 				<li class="topcoat-list__item">
-					<a href="<%= Functions.get_post_link(post.id) %>" class="archive-post-link">
+					<a href="<%= TemplateTags.get_post_link(post.id) %>" class="archive-post-link">
 						<% if( post.featured_img.src && post.featured_img.src.length ){ %>
 							<img src="<%= post.featured_img.src %>" />
 						<% } %>

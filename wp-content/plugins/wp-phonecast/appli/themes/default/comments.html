@@ -1,5 +1,5 @@
 <div class="topcoat-list">
-  <h3 class="topcoat-list__header">Commentaires sur "<a href="<%= Functions.get_post_link(post.id) %>"><%= post.title %>"</a></h3>
+  <h3 class="topcoat-list__header">Commentaires sur "<a href="<%= TemplateTags.get_post_link(post.id) %>"><%= post.title %>"</a></h3>
   <% if(comments.length){ %>
 	  <ul class="topcoat-list__container">
 	  	<% _.each( comments, function( comment ){ %>

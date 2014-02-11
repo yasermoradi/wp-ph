@@ -7,8 +7,8 @@
 		      <span class="icon-bar"></span>
 	    </button>
 	    <span class="navbar-brand refresh-button-wrapper">
-	    	<% if( Functions.displayBackButton() ){ %>
-				<a href="<%= Functions.getPreviousPageLink() %>" id="go-back" class="navbar-brand"><span class="glyphicon glyphicon-backward"></span></a>
+	    	<% if( TemplateTags.displayBackButton() ){ %>
+				<a href="<%= TemplateTags.getPreviousPageLink() %>" id="go-back" class="navbar-brand"><span class="glyphicon glyphicon-backward"></span></a>
 	     	<% }else{ %>
 	     		<a href="#" id="refresh-button" class="navbar-brand"><span class="glyphicon glyphicon-refresh"></span></a>
 	     	<% } %>
