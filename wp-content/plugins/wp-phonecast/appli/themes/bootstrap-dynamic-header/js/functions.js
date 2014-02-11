@@ -1,4 +1,4 @@
-define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'],function($,RegionManager,App){
+define(['jquery','core/theme-app','theme/js/bootstrap.min'],function($,App){
 	
 	function closeMenu(){
 		var navbar_toggle_button = $(".navbar-toggle").eq(0);
@@ -36,7 +36,7 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		App.navigate(navigate_to);
 	});
 	
-	RegionManager.on('page:showed',function(current_page,view){
+	App.on('page:showed',function(current_page,view){
 		scrollTop();
 		//current_page.page_type can be 'list','single','page','comments'
 	});
@@ -56,7 +56,7 @@ define(['jquery','core/region-manager','core/theme-app','theme/js/bootstrap.min'
 		}
 	}
 
-	RegionManager.on('header:render',function(current_page,headerView){
+	App.on('header:render',function(current_page,headerView){
 		updateHeaderEvents();
 	});
 	

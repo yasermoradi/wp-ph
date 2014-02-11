@@ -1,4 +1,4 @@
-define(['jquery','core/region-manager','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'],function($,RegionManager,App,Storage){
+define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'],function($,App,Storage){
 	
 	function closeMenu(){
 		var navbar_toggle_button = $(".navbar-toggle").eq(0);
@@ -58,14 +58,14 @@ define(['jquery','core/region-manager','core/theme-app','core/lib/storage.js','t
 		closeMenu();
 	});
 	
-	RegionManager.on('page:leave',function(current_page,view){
+	App.on('page:leave',function(current_page,view){
 		//current_page.page_type can be 'list','single','page','comments'
 		if( current_page.page_type == 'list' ){
 			Storage.set('scroll-pos',current_page.fragment,$('body').scrollTop());
 		}
 	});
 	
-	RegionManager.on('page:showed',function(current_page,view){
+	App.on('page:showed',function(current_page,view){
 		//current_page.page_type can be 'list','single','page','comments'
 		if( current_page.page_type == 'list' ){
 			var pos = Storage.get('scroll-pos',current_page.fragment);

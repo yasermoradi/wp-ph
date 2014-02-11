@@ -11,7 +11,6 @@ define(function (require) {
     		  data[group] = {};
     	  }
     	  data[group][key] = value;
-    	  console.log('storage data',data);
       };
       
       storage.get = function(group,key){
