@@ -22,7 +22,7 @@ define(function (require) {
         },
 
         render : function() {
-        	var renderedContent = this.template({ comments : this.comments.toJSON(), post : this.post.toJSON(), TempaleTags : ThemeTplTags });
+        	var renderedContent = this.template({ comments : this.comments.toJSON(), post : this.post.toJSON(), TemplateTags : ThemeTplTags });
             $(this.el).html(renderedContent); 
             return this;
         }
