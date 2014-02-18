@@ -9,6 +9,7 @@ class WppcConfigFile{
 	public static function rewrite_rules(){
 		add_rewrite_tag('%wppc_appli_file%','([^&]+)');
 		add_rewrite_rule('^wp-content/plugins/wp-phonecast/appli/(config\.js)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
+		add_rewrite_rule('^wp-content/plugins/wp-phonecast/appli/(config\.xml)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
 	}
 	
 	public static function template_redirect(){
@@ -28,17 +29,43 @@ class WppcConfigFile{
 					$file = $wp_query->query_vars['wppc_appli_file'];
 					switch($file){
 						case 'config.js':
-							$wp_ws_url = WppcWebServices::get_app_web_service_url($app_id);
-							$theme = WppcThemesStorage::get_current_theme($app_id);
-							
-							$app_main_infos = WppcApps::get_app_main_infos($app_id);
-							$app_title = $app_main_infos['name'];
-							
-							$debug_mode = WppcBuild::get_app_debug_mode($app_id);
-		
 							header("Content-type: text/javascript;  charset=utf-8");
+							echo "/* Wp PhoneCast simulator config.js */\n";
+							self::get_config_js($app_id,true);
+							exit();
+						case 'config.xml':
+							header("Content-type: text/xml;  charset=utf-8");
+							self::get_config_xml($app_id,true);
+							exit();
+						default:
+							exit();
+					}
+				}else{
+					echo __('App not found') .' : ['. $app_id .']';
+					exit();
+				}
+				
+			}else{
+				_e('App id not found in _GET parmeters');
+				exit();
+			}
+		}
+		
+	}
+	
+	public static function get_config_js($app_id,$echo=false){
+		$wp_ws_url = WppcWebServices::get_app_web_service_url($app_id);
+		$theme = WppcThemesStorage::get_current_theme($app_id);
+			
+		$app_main_infos = WppcApps::get_app_main_infos($app_id);
+		$app_title = $app_main_infos['title'];
+			
+		$debug_mode = WppcBuild::get_app_debug_mode($app_id);
+
+		if( !$echo ){
+			ob_start();
+		}
 ?>
-/* Wp PhoneCast simulator config.js */
 define(function (require) {
 
     "use strict";
@@ -52,19 +79,63 @@ define(function (require) {
 
 });
 <?php
-								exit();
-					}
-				}else{
-					echo __('App not found') .' : ['. $app_id .']';
-					exit();
-				}
-				
-			}else{
-				_e('App id not found in _GET parmeters');
-				exit();
-			}
+		$content = '';
+		if( !$echo ){
+			$content = ob_get_contents();
+			ob_end_clean();
 		}
 		
+		return !$echo ? $content : '';
+	}
+	
+	public static function get_config_xml($app_id,$echo=false){
+		$app_main_infos = WppcApps::get_app_main_infos($app_id);
+		
+		$app_name = $app_main_infos['name'];
+		$app_description = $app_main_infos['desc'];
+		$app_phonegap_id = $app_main_infos['app_phonegap_id'];
+		$app_version = $app_main_infos['version'];
+		$app_version_code = $app_main_infos['version_code'];
+		$app_author = $app_main_infos['author'];
+		$app_author_email = $app_main_infos['author_email'];
+		$app_author_website = $app_main_infos['author_website'];
+		$app_platform = $app_main_infos['platform'];
+		
+		$xmlns = 'http://www.w3.org/ns/widgets';
+		$xmlns_gap = 'http://phonegap.com/ns/1.0';
+		
+		if( !$echo ){
+			ob_start();
+		}
+		
+		echo '<?xml version="1.0" encoding="UTF-8" ?>';
+?>
+
+<widget xmlns       = "<?php echo $xmlns ?>"
+        xmlns:gap   = "<?php echo $xmlns_gap ?>"
+        id          = "<?php echo $app_phonegap_id ?>"
+        versionCode = "<?php echo $app_version_code ?>"
+        version     = "<?php echo $app_version ?>" >
+
+	<name><?php echo $app_name ?></name>
+
+	<description><?php echo $app_description ?></description>
+	
+	<author href="<?php echo $app_author_website ?>" email="<?php echo $app_author_email ?>"><?php echo $app_author ?></author>
+
+	<gap:platform name="<?php echo $app_platform ?>" />
+		
+	<!-- Add Icon and/or Splash screen here -->
+	
+</widget>
+<?php
+		$content = '';
+		if( !$echo ){
+			$content = ob_get_contents();
+			ob_end_clean();
+		}
+		
+		return !$echo ? $content : '';
 	}
 	
 }
