@@ -21,7 +21,7 @@ define(['jquery','core/theme-app','theme/js/bootstrap.min'],function($,App){
 	
 	App.setAutoBackButton($('#go-back')); //Automatically shows and hide Back button according to current page
 	
-	App.setAutoBodyClass(true); //Adds class on <body> according to the current page
+	App.setAutoContextClass(true); //Adds class on <body> according to the current page
 	
 	App.on('refresh:start',function(){
 		$('#refresh-button').addClass('refreshing');

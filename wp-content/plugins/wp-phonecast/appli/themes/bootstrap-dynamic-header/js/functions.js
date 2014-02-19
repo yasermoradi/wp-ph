@@ -11,7 +11,7 @@ define(['jquery','core/theme-app','theme/js/bootstrap.min'],function($,App){
 		window.scrollTo(0,0);
 	}
 	
-	App.setAutoBodyClass(true); //Adds class on <body> according to the current page
+	App.setAutoContextClass(true); //Adds class on <body> according to the current page
 	
 	App.on('refresh:start',function(){
 		$('#refresh-button').addClass('refreshing');

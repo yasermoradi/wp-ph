@@ -192,25 +192,26 @@ define(function (require) {
 	  /**
 	   * Sets class to the body element according to the given current page 
 	   */
-	  var setBodyClass = function(current_page){
+	  var setContextClass = function(current_page,element_id){
 		  if( !_.isEmpty(current_page) ){
-			  var $body = $('body');
-			  $body.removeClass(function(index, css){
+			  var $element = element_id == undefined ? $('body') : $('#'+element_id);
+			  $element.removeClass(function(index, css){
 				  return (css.match (/\app-\S+/g) || []).join(' ');
 			  });
-			  $body.addClass('app-'+ current_page.page_type);
-			  $body.addClass('app-'+ current_page.fragment);
+			  $element.addClass('app-'+ current_page.page_type);
+			  $element.addClass('app-'+ current_page.fragment);
 		  }
 	  };
 	  
 	  /**
-	   * Adds class on DOM body element according to the current page
+	   * Adds class on given DOM element according to the current page.
+	   * If element is not provided, defaults to <body>.
 	   * @param activate Set to true to activate
 	   */
-	  themeApp.setAutoBodyClass = function(activate){
+	  themeApp.setAutoContextClass = function(activate,element_id){
 		  if( activate ){
-			  RegionManager.on('page:showed',setBodyClass);
-			  setBodyClass(App.getCurrentPageData());
+			  RegionManager.on('page:showed',function(current_page){ setContextClass(current_page,element_id); } );
+			  setContextClass(App.getCurrentPageData(),element_id);
 		  }
 		  //TODO : handle deactivation!
 	  };
