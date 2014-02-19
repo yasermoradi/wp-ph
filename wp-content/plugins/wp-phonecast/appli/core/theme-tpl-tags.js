@@ -34,12 +34,12 @@ define(function (require) {
     	  return App.getPreviousPageLink();
 	  };
 	  
-      themeTplTags.get_post_link = function(post_id){
+      themeTplTags.getPostLink = function(post_id){
     	  //TODO Check if the post exists in the posts global 
     	  return '#single-'+ post_id;
       };
       
-      themeTplTags.get_comments_link = function(post_id){
+      themeTplTags.getCommentsLink = function(post_id){
     	  //TODO Check if the post exists in the posts global
     	  return '#comments-'+ post_id;
       };
@@ -49,7 +49,7 @@ define(function (require) {
     	  return display == 'show';
 	  };
       
-      themeTplTags.is_single = function(post_id){
+      themeTplTags.isSingle = function(post_id){
     	  var page_data = App.getCurrentPageData();
     	  var is_single = page_data.page_type == 'single';
     	  if( post_id != undefined ){
@@ -58,7 +58,7 @@ define(function (require) {
     	  return is_single;
       };
       
-      themeTplTags.is_page = function(page_id){
+      themeTplTags.isPage = function(page_id){
     	  var page_data = App.getCurrentPageData();
     	  var is_page = page_data.page_type == 'page';
     	  if( page_id != undefined ){
@@ -67,11 +67,11 @@ define(function (require) {
     	  return is_page;
       };
       
-      themeTplTags.is_post_type = function(post_type,post_id){
+      themeTplTags.isPostType = function(post_type,post_id){
     	  //TODO!
       };
       
-      themeTplTags.is_taxonomy = function(taxonomy,terms){
+      themeTplTags.isTaxonomy = function(taxonomy,terms){
     	  var is_taxonomy = false;
     	  
     	  var page_data = App.getCurrentPageData();
@@ -93,15 +93,15 @@ define(function (require) {
     	  return is_taxonomy;
       };
       
-      themeTplTags.is_category = function(categories){
-    	  return themeTplTags.is_taxonomy('category',categories);
+      themeTplTags.isCategory = function(categories){
+    	  return themeTplTags.isTaxonomy('category',categories);
       };
       
-      themeTplTags.is_tag = function(tags){
-    	  return themeTplTags.is_taxonomy('tag',tags);
+      themeTplTags.isTag = function(tags){
+    	  return themeTplTags.isTaxonomy('tag',tags);
       };
       
-      themeTplTags.is_screen = function(screen_fragment){
+      themeTplTags.isScreen = function(screen_fragment){
     	  var page_data = App.getCurrentPageData();
     	  return page_data.fragment == screen_fragment;
       };

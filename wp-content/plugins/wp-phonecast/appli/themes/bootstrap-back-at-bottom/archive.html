@@ -26,7 +26,7 @@
 												
 					<div class="media-body">
 						<h4 class="media-heading">
-							<a href="<%= TemplateTags.get_post_link(post.id) %>" class="pull-left"><%= post.title %></a>
+							<a href="<%= TemplateTags.getPostLink(post.id) %>" class="pull-left"><%= post.title %></a>
 							&nbsp;<small class="small">Le <%= day +'/'+ month +'/'+ year %></small>
 						</h4>
 						<% if( post.nb_comments > 0 ){ %>
