@@ -75,7 +75,7 @@ class WppcSimulator{
 					<div id="debug-infos">
 						<h3><a href="<?php echo $appli_url ?>"><?php _e('Preview in browser') ?></a></h3>
 						
-						<h3><a href="<?php echo $appli_dir_url .'/config.js?wppc_app_id='. $app_id ?>"><?php _e('View config file') ?></a></h3>
+						<h3><a href="<?php echo $appli_dir_url .'/config.js?wppc_app_id='. $app_id ?>"><?php _e('View config.js') ?></a></h3>
 						
 						<br/><br/>
 						<h3><?php _e('Web services') ?> :</h3>

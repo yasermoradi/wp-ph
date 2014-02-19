@@ -6,11 +6,11 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		
 		$post_type = !empty($options['post-type']) ? $options['post-type'] : 'post';
 		
-		$query = array('post-type' => $post_type);
+		$query = array('post_type' => $post_type);
 		
 		$query_args = array('post_type' => $post_type);
 			
-		$query_args['numberposts'] = 20; //TODO : dynamise this!
+		$query_args['numberposts'] = 20; //TODO : dynamise this!!
 		
 		if( !empty($options['taxonomy']) && !empty($options['term']) ){
 			
@@ -22,8 +22,9 @@ class WppcComponentTypePostsList extends WppcComponentType{
 				)
 			);
 			
-			$query = array('type'=>'taxonomy','taxonomy'=>$options['taxonomy'],
-						   'terms'=>is_array($options['term']) ? $options['term'] : array($options['term']));
+			$query['type'] = 'taxonomy';
+			$query['taxonomy'] = $options['taxonomy'];
+			$query['terms'] = is_array($options['term']) ? $options['term'] : array($options['term']);
 		}
 					
 		$posts = get_posts($query_args);
@@ -40,7 +41,6 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		$this->set_specific('query',$query);
 		$this->set_globals('posts',$posts_ids);
 		
-		
 	} 
 	
 	private function get_post_data($_post){
@@ -50,6 +50,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		
 		$post_data = array(
 			'id' => $post->ID,
+			'post_type' => $post->post_type,
 			'date' => strtotime($post->post_date),
 			'title' => $post->post_title,
 			'content' => '',
@@ -68,7 +69,9 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		$post_featured_img_id = get_post_thumbnail_id($post->ID);
 		if( !empty($post_featured_img_id) ){
 			$featured_img_src = wp_get_attachment_image_src($post_featured_img_id, 'mobile-featured-thumb');
-			$post_data['featured_img']['src'] = $featured_img_src[0];
+			@$post_data['featured_img']['src'] = $featured_img_src[0];
+			$post_data['featured_img']['width'] = $featured_img_src[1];
+			$post_data['featured_img']['height'] = $featured_img_src[2];
 		}
 		
 		$post_data = apply_filters('wppc_posts_list_post_data',$post_data,$post);

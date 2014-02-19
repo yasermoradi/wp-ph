@@ -53,7 +53,7 @@ class WppcBuild{
 		<a href="<?php echo $appli_url ?>" class="button button-large"><?php _e('View application in browser') ?></a>
 		<br/>
 		<br/>
-		<a href="<?php echo self::get_appli_dir_url() .'/config.js?wppc_app_id='. WppcApps::get_app_slug($post->ID) ?>"><?php _e('View config file') ?></a>
+		<a href="<?php echo self::get_appli_dir_url() .'/config.js?wppc_app_id='. WppcApps::get_app_slug($post->ID) ?>"><?php _e('View config.js') ?></a>
 		<br/>
 		<br/>
 		<label><?php _e('Web services') ?> :</label><br/>
