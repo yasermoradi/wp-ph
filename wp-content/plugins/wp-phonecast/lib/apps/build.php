@@ -25,7 +25,7 @@ class WppcBuild{
 		
 		add_meta_box(
 			'wppc_export_box',
-			__('Phonegap ready app export'),
+			__('Phonegap ready App export'),
 			array(__CLASS__,'inner_export_box'),
 			'wppc_apps',
 			'side',
@@ -66,6 +66,9 @@ class WppcBuild{
 		$available_themes = WppcThemes::get_available_themes();
 		$current_theme = WppcThemesStorage::get_current_theme($app_id);
 		?>
+		<span class="description wppc_export_infos"><?php _e('Phonegap exports are Zip files created in the WordPress uploads directory') ?> : <br/><strong><?php echo str_replace(ABSPATH,'',self::get_export_files_path()) ?></strong></span>
+		<br/><span class="description"><?php echo sprintf(__("The %s last App exports are memorized in this directory."),self::export_file_memory) ?></span>
+		<br/><br/>
 		<label><?php _e('Themes to include in app export')?> : </label><br/>
 		<select id="wppc_export_theme" multiple>
 			<?php foreach($available_themes as $theme): ?>
@@ -73,13 +76,12 @@ class WppcBuild{
 				<option value="<?php echo $theme ?>" <?php echo $selected ?>><?php echo ucfirst($theme)?> </option>
 			<?php endforeach ?>
 		</select>
+		<label for="wppc_download_after_build"><?php _e('Download after export') ?></label> <input type="checkbox" id="wppc_download_after_build" checked="checked" />
 		<a id="wppc_export_link" href="#" class="button button-primary button-large"><?php _e('Export as PhoneGap App sources') ?>!</a>
 		<div id="wppc_export_feedback"></div>
-		<div class="description wppc_export_infos"><?php _e('Export Zip files are created in the WordPress uploads directory') ?> : <br/><?php echo str_replace(ABSPATH,'',self::get_export_files_path()) ?></div>
 		
 		<?php $previous_exports = self::get_available_app_exports($app_id) ?>
 		<?php if( !empty($previous_exports) ): ?>
-			<br/>
 			<label><?php _e('Download a previous export') ?> : </label>
 			<select id="wppc_available_exports">
 				<?php foreach( $previous_exports as $timestamp => $entry): ?>
@@ -108,7 +110,9 @@ class WppcBuild{
 							if( response.ok == 2 ){
 								$feedback.append('<br/><br/><strong><?php _e("Warning!") ?></strong> : '+ response.msg);
 							}
-							window.location.href = '<?php echo add_query_arg(array('action'=>'wppc_download_app_sources'),wp_nonce_url(admin_url(),'wppc_download_app_sources')) ?>&export='+ response['export'];
+							if( jQuery('#wppc_download_after_build')[0].checked ){
+								window.location.href = '<?php echo add_query_arg(array('action'=>'wppc_download_app_sources'),wp_nonce_url(admin_url(),'wppc_download_app_sources')) ?>&export='+ response['export'];
+							}
 						}else{
 							jQuery('#wppc_export_feedback').addClass('error').html(response.msg);
 						}
@@ -130,6 +134,9 @@ class WppcBuild{
 			}
 			select#wppc_export_theme,#wppc_available_exports{
 				width:100%;
+			}
+			select#wppc_export_theme{
+				margin:10px;
 			}
 		</style>
 		<?php

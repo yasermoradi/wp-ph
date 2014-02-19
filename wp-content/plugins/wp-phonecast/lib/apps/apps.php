@@ -87,7 +87,7 @@ class WppcApps{
 
 		add_meta_box(
 			'wppc_app_phonegap_data',
-			__('Phonegap infos'),
+			__('Phonegap config.xml infos'),
 			array(__CLASS__,'inner_phonegap_infos_box'),
 			'wppc_apps',
 			'side',
@@ -123,7 +123,7 @@ class WppcApps{
 		?>
 		<div class="wppc_settings">
 			<span class="description"><?php _e('PhoneGap config.xml informations that are going to be displayed on App Stores.<br/> 
-			They are required when exporting the app to Phonegap, but are not used for app debug and simulation in browsers.') ?></span>
+			They are required when exporting the App to Phonegap, but are not used for App debug and simulation in browsers.') ?></span>
 			<br/><br/>
 			<label><?php _e('Application name') ?></label> : <br/> 
 			<input type="text" name="wppc_app_name" value="<?php echo $main_infos['name'] ?>" />
