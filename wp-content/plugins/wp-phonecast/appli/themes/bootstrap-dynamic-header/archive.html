@@ -21,15 +21,13 @@
 				<li class="media"> 
 						
 					<% if( post.featured_img.src && post.featured_img.src.length ){ %>
-						<a href="<%= TemplateTags.get_post_link(post.id) %>" class="pull-left">
-							<img class="media-object" style="width: 87px; height: 58px;" src="<%= post.featured_img.src %>">
-						</a>
-					<% } %>						
+						<img class="media-object pull-left" style="width: 87px; height: 58px;" src="<%= post.featured_img.src %>">
+					<% } %>					
 												
 					<div class="media-body">
 						<h4 class="media-heading">
-							<%= post.title %>
-							<small class="small">Le <%= day +'/'+ month +'/'+ year %></small>
+							<a href="<%= TemplateTags.get_post_link(post.id) %>" class="pull-left"><%= post.title %></a>
+							&nbsp;<small class="small">Le <%= day +'/'+ month +'/'+ year %></small>
 						</h4>
 						<% if( post.nb_comments > 0 ){ %>
 							<span class="comments"><%= post.nb_comments %> commentaire<% post.nb_comments > 1 ? print('s') : '' %></span><br/>
