@@ -114,24 +114,24 @@ define(function (require) {
 				  history_push(page_type,component_id,item_id,current_fragment,data);
 			  }else if( page_type == 'single' ){
 				  if( current_page.page_type == 'list' ){
-					  history_push(page_type,component_id,item_id,current_fragment);
+					  history_push(page_type,component_id,item_id,current_fragment,data);
 				  }else if( current_page.page_type == 'comments' ){
 					  if( previous_page.page_type == 'single' && previous_page.item_id == item_id ){
 						  history_stack.pop();
 					  }else{
 						  history_stack = [];
-						  history_push(page_type,component_id,item_id,current_fragment);
+						  history_push(page_type,component_id,item_id,current_fragment,data);
 					  }
 				  }else{
 					  history_stack = [];
-					  history_push(page_type,component_id,item_id,current_fragment);
+					  history_push(page_type,component_id,item_id,current_fragment,data);
 				  }
 			  }else if( page_type == 'page' ){
 				  history_stack = [];
 				  history_push(page_type,component_id,item_id,current_fragment,data);
 			  }else if( page_type == 'comments' ){
 				  //if( current_page.page_type == 'single' && current_page.item_id == item_id ){
-					  history_push(page_type,component_id,item_id,current_fragment);
+					  history_push(page_type,component_id,item_id,current_fragment,data);
 				  //}
 			  }
 			  

@@ -84,7 +84,7 @@ define(function (require) {
 		        	var post = global.get(post_id);
 		        	if( post ){
 		        		RegionManager.leave(App.getCurrentPageData());
-		        		App.addToHistory('single','',post_id);
+		        		App.addToHistory('single','',post_id,{post:post.toJSON()});
 		        		RegionManager.show(new SingleView({post:post}));
 		        	}else{
 	        			App.router.default_route();

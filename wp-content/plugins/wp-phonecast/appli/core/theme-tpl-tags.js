@@ -44,31 +44,34 @@ define(function (require) {
     	  return '#comments-'+ post_id;
       };
       
-      themeTplTags.displayBackButton = function(){
-    	  var display = ThemeApp.getBackButtonDisplay();
-    	  return display == 'show';
-	  };
-      
       themeTplTags.isSingle = function(post_id){
     	  var page_data = App.getCurrentPageData();
     	  var is_single = page_data.page_type == 'single';
-    	  if( post_id != undefined ){
+    	  if( is_single && post_id != undefined ){
     		  is_single &= parseInt(post_id) == page_data.item_id;
     	  }
-    	  return is_single;
+    	  return is_single == true;
       };
       
       themeTplTags.isPage = function(page_id){
     	  var page_data = App.getCurrentPageData();
     	  var is_page = page_data.page_type == 'page';
-    	  if( page_id != undefined ){
+    	  if( is_page && page_id != undefined ){
     		  is_page &= parseInt(page_id) == page_data.item_id;
     	  }
-    	  return is_page;
+    	  return is_page == true;
       };
       
       themeTplTags.isPostType = function(post_type,post_id){
-    	  //TODO!
+    	  var page_data = App.getCurrentPageData();
+    	  var is_post_type = (page_data.page_type == 'single');
+    	  if( is_post_type && post_type != undefined ){
+    		  is_post_type &= (page_data.data.post.post_type == post_type);
+    		  if( is_post_type && post_id != undefined ){
+    			  is_post_type &= (parseInt(post_id) == page_data.item_id);
+        	  }
+    	  }
+    	  return is_post_type == true;
       };
       
       themeTplTags.isTaxonomy = function(taxonomy,terms){
@@ -105,6 +108,11 @@ define(function (require) {
     	  var page_data = App.getCurrentPageData();
     	  return page_data.fragment == screen_fragment;
       };
+      
+      themeTplTags.displayBackButton = function(){
+    	  var display = ThemeApp.getBackButtonDisplay();
+    	  return display == 'show';
+	  };
       
 	  return themeTplTags;
 });
