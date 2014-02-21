@@ -1,7 +1,7 @@
 <?php
 class WppcComponentTypePage extends WppcComponentType{
 	
-	protected function compute_data($options){
+	protected function compute_data($options,$args=array()){
 		global $wpdb;
 		
 		if( !empty($options['page']) ){

@@ -2,7 +2,9 @@ define(function (require) {
 
     "use strict";
 
-    var Backbone                 = require('backbone');
+    var Backbone                 = require('backbone'),
+    	_                   	 = require('underscore');
+    
     require('localstorage');
 
     var Component = Backbone.Model.extend({
@@ -12,6 +14,9 @@ define(function (require) {
             type : "",
             data : "",
             global : ""
+        },
+        getLastItemId : function(){
+        	return _.last(this.get('data').ids);
         }
     });
 

@@ -27,6 +27,14 @@ define(function (require) {
 		  vent.on(event,callback);
 	  };
 	  
+	  //Error handling
+	  app.trigger_error = function(error_data,error_callback){
+	  	  if( error_callback != undefined ){
+	  		error_callback(error_data);
+	  	  }
+		  vent.trigger('error',error_data);
+	  };
+	  
 	  //App initializer
 	  app.addInitializer = function(callback,wait){
 	    var initializer = {
@@ -234,9 +242,10 @@ define(function (require) {
 					  cb_ok();
 				},
 			  	error : function(jqXHR, textStatus, errorThrown){
-			  		var error = {type:'ajax',where:'app::syncWebService',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}};
-			  		cb_error(error);
-			  		vent.trigger('error',error);
+			  		app.trigger_error(
+			  			{type:'ajax',where:'app::syncWebService',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+    		  		    cb_error
+			  		);
 			  	}
 		  });
 	  };
@@ -250,16 +259,98 @@ define(function (require) {
     	  var post = app.globals['posts'].get(post_id);
     	  
     	  if( post != undefined ){
-	    	  $.get(Config.wp_ws_url + ws_url, function(data) {
-	    		  	_.each(data.items,function(value, key, list){
-	    		  		comments.add(value);
-	    	  		});
-	    		  	cb_ok(comments,post);
+	    	  $.ajax({
+	    		  type: 'GET',
+	    		  url: Config.wp_ws_url + ws_url,
+	    		  success: function(data) {
+		    		  	_.each(data.items,function(value, key, list){
+		    		  		comments.add(value);
+		    	  		});
+		    		  	cb_ok(comments,post);
+		    	  },
+		    	  error: function(jqXHR, textStatus, errorThrown){
+		    		  app.trigger_error(
+		    			  {type:'ajax',where:'app::getPostComments',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+	    		  		  cb_error
+	        		  );
+		    	  }
 	    	  });
     	  }else{
-    		  var error = {type:'not-found',where:'app::getPostComments',data:{message:'Post '+ post_id +' not found.'}};
-		  	  cb_error(error);
-		  	  vent.trigger('error',error);
+    		  app.trigger_error(
+    			  {type:'not-found',where:'app::getPostComments',data:{message:'Post '+ post_id +' not found.'}},
+		  		  cb_error
+    		  );
+    	  }
+      };
+      
+      app.getMoreOfComponent = function(component_id,cb_ok,cb_error){
+    	  var component = app.components.get(component_id);
+    	  if( component ){
+	    	  var token = ''; //getToken();
+	    	  var ws_url = token +'/component/'+ component_id;
+	    	  
+	    	  var last_item_id = component.getLastItemId();
+	    	  ws_url += '?before_item='+ last_item_id;
+	    	  
+	    	  $.ajax({
+	    		  type: 'GET',
+	    		  url: Config.wp_ws_url + ws_url,
+	    		  success: function(answer) {
+		    		  if( answer.result && answer.result.status == 1 ){
+		    			  if( answer.component.slug == component_id ){
+		    				  var global = answer.component.global;
+		    				  if( app.globals.hasOwnProperty(global) ){
+		    					  
+		    					  var component_data = component.get('data');
+		    					  
+		    					  var new_ids = _.difference(answer.component.data.ids,component_data.ids);
+		    					  
+		    					  component_data.ids = _.union(component_data.ids,answer.component.data.ids); //merge ids
+		    					  component.set('data',component_data);
+		    					  
+			    				  var current_items = app.globals[global];
+								  _.each(answer.globals[global],function(item, id){
+									  current_items.add(_.extend({id:id},item)); //auto merges if "id" already in items
+								  });
+								  
+		    					  var new_items = [];
+								  _.each(new_ids,function(item_id){
+									  new_items.push(current_items.get(item_id));
+			          	  		  });
+								  
+								  var nb_left = component_data.total - component_data.ids.length;
+								  var is_last = !_.isEmpty(answer.component.data.query.is_last_page) ? true : nb_left <= 0;  
+								  
+								  Utils.log('More content retrieved for component',component_id,new_ids,new_items,component);
+								  
+								  cb_ok(new_items,is_last,{nb_left:nb_left,new_ids:new_ids,global:global,component:component});
+								  
+		    				  }else{
+			    				  app.trigger_error(
+			    					  {type:'not found',where:'app::getMoreOfComponent',data:{message:'Global not found : '+ global}},
+							  		  cb_error
+					    		  );
+			    			  }
+		    			  }else{
+						  	  app.trigger_error(
+						  		  {type:'not found',where:'app::getMoreOfComponent',data:{message:'Wrong component id : '+ component_id}},
+						  		  cb_error
+				    		  );
+		    			  }
+		    		  }else{
+					  	  app.trigger_error(
+					  		  {type:'web-service',where:'app::getMoreOfComponent',data:{message:answer.message}},
+					  		  cb_error
+			    		  );
+		    		  }
+		    	  },
+		    	  error: function(jqXHR, textStatus, errorThrown){
+		    		  app.trigger_error(
+		    			  {type:'ajax',where:'app::getMoreOfComponent',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+		    			  cb_error
+		    		  );
+		    	  }
+	    	  });
     	  }
       };
 	  

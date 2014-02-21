@@ -28,7 +28,6 @@ class WppcComponents{
 			
 			$navigation_items = WppcNavigationItemsStorage::get_navigation_indexed_by_components_slugs($app_id,true);
 			
-			
 			$components_data['navigation'] = $navigation_items;
 			$components_data['components'] = $components;
 			$components_data['globals'] = $globals;
@@ -37,18 +36,19 @@ class WppcComponents{
 		return $components_data;
 	}
 	
-	public static function create_default_components(){
-		/*
-		$categories = get_terms('category',array('hierarchical'=>false));
-		if( !is_wp_error($categories) ){
-			$i = 1;
-			foreach($categories as $category){
-				$components[$i] = new WppcComponent($i,'categorie-'. $category->slug,$category->name,'posts-list',array('taxonomy'=>'category','slug'=>$category->slug));
-				$i++;
-			}
+	public static function get_component_data($app_id,$component_slug,$args){
+		$component_data = array();
+		
+		if( WppcComponentsStorage::component_exists($app_id, $component_slug) ){
+			$component = WppcComponentsStorage::get_component($app_id, $component_slug);
+			$component_data_raw = WppcComponentsTypes::get_component_data($component,array(),$args);
+			$component_data['component'] = $component_data_raw['specific'];
+			$component_data['globals'] = $component_data_raw['globals'];
 		}
-		*/
+		
+		return $component_data;
 	}
+	
 }
 
 class WppcComponent{

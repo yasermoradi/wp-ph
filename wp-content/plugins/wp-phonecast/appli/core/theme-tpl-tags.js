@@ -113,6 +113,16 @@ define(function (require) {
     	  var display = ThemeApp.getBackButtonDisplay();
     	  return display == 'show';
 	  };
+	  
+	  themeTplTags.displayGetMoreLink = function(){
+		  var get_more_link_display = ThemeApp.getGetMoreLinkDisplay();
+		  return get_more_link_display.display;
+	  };
+	  
+	  themeTplTags.getMoreLinkNbLeft = function(){
+		  var get_more_link_display = ThemeApp.getGetMoreLinkDisplay();
+		  return get_more_link_display.nb_left;
+	  };
       
 	  return themeTplTags;
 });

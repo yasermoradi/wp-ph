@@ -10,18 +10,19 @@ abstract class WppcComponentType{
 
 	private $data = array('specific'=>array(),'globals'=>array());
 	
-	abstract protected function compute_data($options);
+	abstract protected function compute_data($options,$args=array());
 	abstract public function get_options_to_display($component);
 	abstract public function get_ajax_action_html_answer($action,$params);
 	abstract public function echo_form_fields($component);
 	abstract public function echo_form_javascript();
 	abstract public function get_options_from_posted_form($data);
 	
-	public function get_data(WppcComponent $component,$globals){
+	public function get_data(WppcComponent $component,$globals,$args=array()){
 		$this->data['globals'] = $globals;
 		$this->data['specific']['label'] = $component->label;
 		$this->data['specific']['type'] = $component->type;
-		$this->compute_data($component->options);
+		$this->data['specific']['slug'] = $component->slug;
+		$this->compute_data($component->options,$args);
 		return $this->data;
 	}
 	
@@ -63,10 +64,10 @@ class WppcComponentsTypes{
 		return $available_components_types;
 	}
 	
-	public static function get_component_data(WppcComponent $component,$globals){
+	public static function get_component_data(WppcComponent $component,$globals,$args=array()){
 		$data = null;
 		if( self::component_type_exists($component->type) ){
-			$data = self::factory($component->type)->get_data($component,$globals);
+			$data = self::factory($component->type)->get_data($component,$globals,$args);
 		}
 		return $data;
 	}

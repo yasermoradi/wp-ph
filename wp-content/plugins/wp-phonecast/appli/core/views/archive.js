@@ -14,7 +14,7 @@ define(function (require) {
             
     		this.template = _.template(Tpl);
            
-            _.bindAll(this,'render');
+            _.bindAll(this,'render','addPosts');
             
     		this.posts = args.posts;
     		
@@ -26,6 +26,13 @@ define(function (require) {
         	var renderedContent = this.template({ posts : this.posts.toJSON(), title: this.title, total:this.total, TemplateTags : ThemeTplTags });
             $(this.el).html(renderedContent); 
             return this;
+        },
+        
+        addPosts : function(posts){
+        	var _this = this;
+        	_.each(posts,function(post){
+        		_this.posts.add(post);
+	  		});
         }
         
     });

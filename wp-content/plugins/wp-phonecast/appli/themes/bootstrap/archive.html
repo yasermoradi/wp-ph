@@ -41,6 +41,10 @@
 									
 		</ul>
 		
+		<% if( TemplateTags.displayGetMoreLink() ){ %>
+			<a class="get-more" href="#">Get more! (<%= TemplateTags.getMoreLinkNbLeft() %> left)</a>
+		<% } %>
+		
 	<% }else{ %>
 		<p>Aucun article trouvé!</p>
 	<% } %>

@@ -224,6 +224,10 @@ define(function (require) {
 		    vent.trigger('page:showed',App.getCurrentPageData(),currentView);
 	    };
 	    
+	    region.getCurrentView = function(){
+	    	return currentView;
+	    };
+	    
 	    region.leave = function() {
 	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
 	    };

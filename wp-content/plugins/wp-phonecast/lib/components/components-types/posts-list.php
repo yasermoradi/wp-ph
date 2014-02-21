@@ -1,7 +1,7 @@
 <?php
 class WppcComponentTypePostsList extends WppcComponentType{
 	
-	protected function compute_data($options){
+	protected function compute_data($options,$args=array()){
 		global $wpdb;
 		
 		$post_type = !empty($options['post-type']) ? $options['post-type'] : 'post';
@@ -10,7 +10,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		
 		$query_args = array('post_type' => $post_type);
 			
-		$query_args['numberposts'] = 20; //TODO : dynamise this!!
+		$query_args['posts_per_page'] = 3; //TODO : dynamise this!!
 		
 		if( !empty($options['taxonomy']) && !empty($options['term']) ){
 			
@@ -26,12 +26,40 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			$query['taxonomy'] = $options['taxonomy'];
 			$query['terms'] = is_array($options['term']) ? $options['term'] : array($options['term']);
 		}
-					
-		$posts = get_posts($query_args);
-		$total = $wpdb->get_var('SELECT FOUND_ROWS()');
+
+		$before_post_date = '';
+		if( !empty($args['before_item']) && is_numeric($args['before_item']) ){
+			$before_post = get_post($args['before_item']);
+			if( !empty($before_post) ){
+				$before_post_date = $before_post->post_date;
+			}
+		}
+		
+		if( !empty($before_post_date) ){
+			if( is_numeric($before_post_date) ){ //timestamp
+				$before_post_date = date('Y-m-d H:i:s',$before_post_date);
+			}
+				
+			if( preg_match('/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',$before_post_date) ){
+				$query['before_item'] = intval($args['before_item']);
+				$posts_where_callback = create_function('$where','return $where .= " AND post_date < \''. $before_post_date .'\'";');
+				add_filter('posts_where', $posts_where_callback);
+			}else{
+				$before_post_date = '';
+			}
+		}
+		
+		$posts_query = new WP_Query($query_args);
+		
+		if( !empty($before_post_date) ){
+			remove_filter('posts_where', $posts_where_callback);
+			$query['is_last_page'] = $posts_query->found_posts <= count($posts_query->posts);
+		}
+		
+		$posts = $posts_query->posts;
+		$total = $posts_query->found_posts;
 		
 		$posts_ids = array();
-		
 		foreach($posts as $post){
 			$posts_ids[$post->ID] = self::get_post_data($post);
 		}

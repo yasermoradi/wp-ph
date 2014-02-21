@@ -9,15 +9,15 @@ class WppcWebServices{
 		add_rewrite_tag('%wppc%','([01])');
 		add_rewrite_tag('%wppc_app_id%','([^&]+)');
 		add_rewrite_tag('%wppc_slug%','([^&]+)');
-		add_rewrite_tag('%wppc_id%','([0-9]+)');
+		add_rewrite_tag('%wppc_id%','([^&]+)');
 		add_rewrite_tag('%wppc_data%','([^&]+)');
 		add_rewrite_tag('%wppc_action%','([^&]+)');
 		add_rewrite_tag('%wppc_token%','([^&]+)');
 		
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_id=$matches[4]&wppc_action=one', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/([0-9]+)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_id=$matches[3]&wppc_action=one', 'top');
+		add_rewrite_rule('^phonecast-api/public/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_id=$matches[3]&wppc_action=one', 'top');
+		add_rewrite_rule('^phonecast-api/public/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_action=list', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_id=$matches[4]&wppc_action=one', 'top');
 		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_action=list', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_action=list', 'top');
 
 		//To define rewrite rules specific to a web service created via hooks (see web-services-crud.php) :
 		add_action('wppc_add_rewrite_rules','');
@@ -36,9 +36,9 @@ class WppcWebServices{
 						if( self::web_service_exists($web_service_slug) ){
 							if( self::check_token($web_service_slug) ){
 								$id = isset($wp_query->query_vars['wppc_id']) ? $wp_query->query_vars['wppc_id'] : 0;
-								self::exit_handle_request($web_service_slug,$wp_query->query_vars['wppc_action'],$id);
+								self::exit_handle_request($wp_query->query_vars['wppc_app_id'],$web_service_slug,$wp_query->query_vars['wppc_action'],$id);
 							}else{
-								self::exit_sending_error(__('Wrong security token'));
+								self::exit_sending_error(__('Wrong security token'),$wp_query->query_vars['wppc_app_id'],$web_service_slug);
 							}
 							break;
 						}
@@ -52,7 +52,7 @@ class WppcWebServices{
 		}
 	}
 	
-	private static function exit_handle_request($service_slug,$action,$id=0){
+	private static function exit_handle_request($app_id,$service_slug,$action,$id=0){
 		global $wp_query;
 		
 		self::log($_SERVER['REQUEST_METHOD'] .' : '. $action .' : '. print_r($_REQUEST,true));
@@ -103,11 +103,11 @@ class WppcWebServices{
 						$sent = json_decode($json);
 					}
 						
-					$service_answer = MlrwsWebServiceCrud::create($service_slug,$sent);
+					$service_answer = MlrwsWebServiceCrud::create($app_id,$service_slug,$sent);
 	
 				}elseif( $_SERVER['REQUEST_METHOD'] == 'GET' ){
 	
-					$service_answer = MlrwsWebServiceCrud::read($service_slug,$wp_query->query_vars);
+					$service_answer = MlrwsWebServiceCrud::read($app_id,$service_slug,$wp_query->query_vars);
 						
 				}
 	
@@ -117,18 +117,18 @@ class WppcWebServices{
 	
 				if($_SERVER['REQUEST_METHOD'] == 'GET') {
 	
-					$service_answer = MlrwsWebServiceCrud::read_one($service_slug,$id);
+					$service_answer = MlrwsWebServiceCrud::read_one($app_id,$service_slug,$id);
 	
 				} elseif($_SERVER['REQUEST_METHOD'] == 'PUT') {
 	
 					$json = file_get_contents("php://input");
 					$new = json_decode($json);
 	
-					$service_answer = MlrwsWebServiceCrud::update($service_slug,$new);
+					$service_answer = MlrwsWebServiceCrud::update($app_id,$service_slug,$new);
 						
 				}elseif( $_SERVER['REQUEST_METHOD'] == 'DELETE' ) {
 	
-					$service_answer = MlrwsWebServiceCrud::delete($service_slug,$id);
+					$service_answer = MlrwsWebServiceCrud::delete($app_id,$service_slug,$id);
 						
 				}elseif( $_SERVER['REQUEST_METHOD'] == 'POST' ){
 	
@@ -170,12 +170,12 @@ class WppcWebServices{
 							}
 	
 							if( $new !== null ){
-								$service_answer = MlrwsWebServiceCrud::update($service_slug,$new);
+								$service_answer = MlrwsWebServiceCrud::update($app_id,$service_slug,$new);
 							}
 	
 						}elseif( $http_method_override_method == 'DELETE' ){
 							self::log('DELETE one (X-HTTP-Method-Override) : '. $id);
-							$service_answer = MlrwsWebServiceCrud::delete($service_slug,$id);
+							$service_answer = MlrwsWebServiceCrud::delete($app_id,$service_slug,$id);
 						}
 					}
 				}
@@ -188,32 +188,32 @@ class WppcWebServices{
 		sleep(2);
 	
 		if( $service_answer !== null ){
-			self::exit_sending_answer($service_answer,$service_slug);
+			self::exit_sending_answer($service_answer,$app_id,$service_slug);
 		}
 	
 		exit(__('Error : Web service not recognised'));
 	}
 	
-	public function build_result_info($status=1,$message='',$service_slug=''){
+	public function build_result_info($status=1,$message='',$app_id='',$service_slug=''){
 	
 		$result_info = (object)array(
 				'status' => !empty($status) ? 1 : 0,
 				'message' => $message
 		);
 	
-		$result_info = apply_filters('mrlws_build_result_info',$result_info,$status,$message,$service_slug);
+		$result_info = apply_filters('mrlws_build_result_info',$result_info,$status,$message,$app_id,$service_slug);
 	
 		return $result_info;
 	}
 	
-	private function exit_sending_error($error, $service=array(), $type='json'){
-		$result_info = self::build_result_info(0,$error,$service);
-		$result_attribute = self::get_result_attribute($result_info,$error,$service);
+	private function exit_sending_error($error, $app_id='', $service=array(), $type='json'){
+		$result_info = self::build_result_info(0,$error,$app_id,$service);
+		$result_attribute = self::get_result_attribute($result_info,$error,$app_id,$service);
 		echo json_encode(array($result_attribute=>$result_info));
 		exit();
 	}
 	
-	private function build_final_answer($service_answer, $service_slug){
+	private function build_final_answer($service_answer, $app_id, $service_slug){
 		$final_answer = null;
 	
 		$result_info = array();
@@ -228,12 +228,12 @@ class WppcWebServices{
 		}
 	
 		if( !empty($error) ){
-			$result_info = self::build_result_info(0,$error,$service_slug);
+			$result_info = self::build_result_info(0,$error,$app_id,$service_slug);
 		}else{
-			$result_info = self::build_result_info(1,'',$service_slug);
+			$result_info = self::build_result_info(1,'',$app_id,$service_slug);
 		}
 	
-		$result_attribute = self::get_result_attribute($result_info,$service_answer,$service_slug);
+		$result_attribute = self::get_result_attribute($result_info,$service_answer,$app_id,$service_slug);
 	
 		if( is_array($service_answer) ){
 			$service_answer = (object)array('items'=>$service_answer,$result_attribute=>$result_info);
@@ -252,9 +252,9 @@ class WppcWebServices{
 		return array('answer'=>$final_answer,'timestamp'=>$timestamp);
 	}
 	
-	private function exit_sending_answer($service_answer, $service_slug, $type = 'json'){
+	private function exit_sending_answer($service_answer, $app_id, $service_slug, $type = 'json'){
 	
-		$final_answer_raw = self::build_final_answer($service_answer, $service_slug);
+		$final_answer_raw = self::build_final_answer($service_answer, $app_id, $service_slug);
 		$final_answer = json_encode($final_answer_raw['answer']);
 	
 		if( self::cache_on() ){
@@ -295,8 +295,8 @@ class WppcWebServices{
 		exit();
 	}
 	
-	private static function get_result_attribute($result_info=null,$service_answer=array(),$service_slug=''){
-		return apply_filters('mrlws_result_attribute','result',$result_info,$service_answer,$service_slug);
+	private static function get_result_attribute($result_info=null,$service_answer=array(),$app_id='',$service_slug=''){
+		return apply_filters('mrlws_result_attribute','result',$result_info,$service_answer,$app_id,$service_slug);
 	}
 	
 	//TODO_WPPC
@@ -380,64 +380,9 @@ class WppcWebServices{
 		return $cache_id;
 	}
 	
-	/**
-	 * Manually computes web services answers by web service slug : use this to manually reload a web service cache for example.
-	 * @param string $web_service_slug
-	 * @param string $ews_data
-	 * @param string $ews_id
-	 * @param string $ews_action
-	 * @param string $ews_subaction
-	 * @param string $ews_subaction_data
-	 * @param boolean $no_cache
-	 * @return array Empty if fails. If success : Data about the generated web service.
-	 */
-	public static function manually_compute_and_cache_web_service_answer($web_service_slug,$ews_action,$ews_id='',$ews_subaction='',$ews_subaction_data='',$no_cache=false){
-	
-		$generated_cache = array();
-	
-		$services = MlrwsWebServicesStorage::get_web_services();
-		foreach($services as $service){
-			if( $service['slug'] == $web_service_slug ){
-	
-				$web_service_type = MlrwsWebServiceType::get_web_service_type($service['type']);
-				if( !empty($web_service_type) ){
-						
-					$identifiers = array(
-							'ews_data' => $web_service_slug,
-							'ews_id' => $ews_id,
-							'ews_action' => $ews_action,
-							'ews_subaction' => $ews_subaction,
-							'ews_subaction_data' => $ews_subaction_data
-					);
-						
-					$service_answer = array();
-					if( $ews_action == 'list' ){
-						$service_answer = $web_service_type->read($service,$identifiers);
-					}elseif( $ews_action == 'one' ){
-						$service_answer = $web_service_type->read_one($service,$ews_id);
-					}
-						
-					$final_answer_raw = self::build_final_answer($service_answer, $service);
-					$final_answer = json_encode($final_answer_raw['answer']);
-						
-					if( !$no_cache && MlrwsBoSettings::cache_is_activated() ){
-						$cache_id = WppcCache::build_web_service_cache_id($service['slug'],$identifiers);
-						WppcCache::delete_web_service_cache($cache_id);
-						WppcCache::cache_web_service_result($cache_id, $final_answer, $final_answer_raw['timestamp']);
-					}
-						
-					$generated_cache = array('service'=>$service,'timestamp'=>$final_answer_raw['timestamp'],'answer'=>$final_answer_raw['answer'],'answer_json'=>$final_answer);
-				}
-	
-				break;
-			}
-		}
-	
-		return $generated_cache;
-	}
-	
 	public static function get_app_web_service_url($app_id_or_slug){
-		return get_bloginfo('wpurl') .'/phonecast-api/'. WppcApps::get_app_slug($app_id_or_slug);
+		$public = '/public'; //TODO dynamise this according to app token activation
+		return get_bloginfo('wpurl') .'/phonecast-api'. $public .'/'. WppcApps::get_app_slug($app_id_or_slug);
 	}
 	
 	private static function web_service_exists($web_service_slug){
@@ -449,4 +394,54 @@ class WppcWebServices{
 		|| isset($wp_filter['wppc_delete_'. $web_service_slug])
 		;
 	}
+	
+	/*
+	 //TODO WPPC
+	* Manually computes web services answers by web service slug : use this to manually reload a web service cache for example.
+	* @return array Empty if fails. If success : Data about the generated web service.
+	public static function manually_compute_and_cache_web_service_answer($app_id,$web_service_slug,$ews_action,$ews_id='',$ews_subaction='',$ews_subaction_data='',$no_cache=false){
+
+		$generated_cache = array();
+	
+		$services = MlrwsWebServicesStorage::get_web_services();
+		foreach($services as $service){
+			if( $service['slug'] == $web_service_slug ){
+		
+				$web_service_type = MlrwsWebServiceType::get_web_service_type($service['type']);
+				if( !empty($web_service_type) ){
+			
+					$identifiers = array(
+							'ews_data' => $web_service_slug,
+							'ews_id' => $ews_id,
+							'ews_action' => $ews_action,
+							'ews_subaction' => $ews_subaction,
+							'ews_subaction_data' => $ews_subaction_data
+					);
+				
+					$service_answer = array();
+					if( $ews_action == 'list' ){
+						$service_answer = $web_service_type->read($app_id,$service,$identifiers);
+					}elseif( $ews_action == 'one' ){
+						$service_answer = $web_service_type->read_one($app_id,$service,$ews_id);
+					}
+				
+					$final_answer_raw = self::build_final_answer($service_answer, $app_id, $service);
+					$final_answer = json_encode($final_answer_raw['answer']);
+				
+					if( !$no_cache && MlrwsBoSettings::cache_is_activated() ){
+						$cache_id = WppcCache::build_web_service_cache_id($service['slug'],$identifiers);
+						WppcCache::delete_web_service_cache($cache_id);
+						WppcCache::cache_web_service_result($cache_id, $final_answer, $final_answer_raw['timestamp']);
+					}
+				
+					$generated_cache = array('service'=>$service,'timestamp'=>$final_answer_raw['timestamp'],'answer'=>$final_answer_raw['answer'],'answer_json'=>$final_answer);
+				}
+			
+				break;
+			}
+		}
+	
+		return $generated_cache;
+	}
+	*/
 }

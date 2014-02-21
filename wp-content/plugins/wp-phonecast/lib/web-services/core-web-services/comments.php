@@ -3,10 +3,10 @@
 class WppcWebServiceComments{
 
 	public static function hooks(){
-		add_filter('wppc_read_one_comments-post',array(__CLASS__,'read_one'),10,2);
+		add_filter('wppc_read_one_comments-post',array(__CLASS__,'read_one'),10,3);
 	}
 	
-	public function read_one($service_answer,$id){
+	public function read_one($service_answer,$id,$app_id){
 		$service_answer = array();
 		
 		$post_id = $id;

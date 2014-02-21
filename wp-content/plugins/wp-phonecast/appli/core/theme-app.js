@@ -55,12 +55,11 @@ define(function (require) {
 				  theme_event_data.message = 'Remote connexion to website failed'; // + ' ('+ data.data.url +')'; 
 				  // + ' ('+ data.data.textStatus + ', '+ data.data.errorThrown +')';
 			  }
-			  else if( data.type == 'not-found' ){
-				  theme_event_data.message = data.message;
-			  }
 			  else{
-				  theme_event_data.message = 'Error' + ' ('+ data.where +')';
+				  theme_event_data.message = 'Oops, an error occured...';
 			  }
+			  
+			  Utils.log('Error event triggered',data);
 			  
 		  }
 		  
@@ -111,6 +110,20 @@ define(function (require) {
     	  return refreshing > 0;
       };
       
+      themeApp.getMoreComponentItems = function(do_after){
+    	  var current_page = App.getCurrentPageData();
+    	  if( current_page.page_type == 'list' ){
+    		  App.getMoreOfComponent(
+    			  current_page.component_id,
+    			  function(new_items,is_last,data){
+    				  var current_archive_view = RegionManager.getCurrentView();
+    				  current_archive_view.addPosts(new_items);
+      				  current_archive_view.render();
+      				  do_after(is_last,new_items,data.nb_left);
+    			  }
+    		  );
+    	  }
+      };
       
       /************************************************
 	   * App navigation
@@ -184,13 +197,34 @@ define(function (require) {
 		  }
 	  };
 	  
+	  /************************************************
+	   * "Get more" link
+	   */
+	  
+	  themeApp.getGetMoreLinkDisplay = function(){
+		  var get_more_link_data = {display:false, nb_left:0};
+		  
+		  var current_page = App.getCurrentPageData();
+		  if( current_page.page_type == 'list' ){
+			  var component = App.components.get(current_page.component_id);
+	    	  if( component ){
+	    		  var component_data = component.get('data');
+	    		  var nb_left = component_data.total - component_data.ids.length;
+	    		  get_more_link_data.nb_left = nb_left;  
+	    		  get_more_link_data.display = nb_left > 0;  
+	    	  }
+		  }
+		  
+		  return get_more_link_data;
+	  };
 	  
 	  /************************************************
-	   * Body class
+	   * DOM element auto class
 	   */
 	  
 	  /**
-	   * Sets class to the body element according to the given current page 
+	   * Sets class to the given DOM element according to the given current page. 
+	   * If element is not provided, defaults to <body>.
 	   */
 	  var setContextClass = function(current_page,element_id){
 		  if( !_.isEmpty(current_page) ){

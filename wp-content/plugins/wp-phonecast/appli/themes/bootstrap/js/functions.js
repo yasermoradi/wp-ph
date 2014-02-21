@@ -11,7 +11,7 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 		window.scrollTo(0,0);
 	}
 	
-	$('#refresh-button').bind('click', function(e){
+	$('#refresh-button').click(function(e){
 		e.preventDefault();
 		closeMenu();
 		App.refresh(function(){
@@ -56,6 +56,15 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	$('#navbar-collapse').on('click','a',function(e){
 		//Close menu when we click a link inside it
 		closeMenu();
+	});
+	
+	$('#container').on('click','.get-more',function(e){
+		e.preventDefault();
+		App.getMoreComponentItems(function(){
+			//If something is needed once items are retrieved, do it here.
+			//Note : if the "get more" link is included in the archive.html template (which is recommended),
+			//it will be automatically refreshed.
+		});
 	});
 	
 	App.on('page:leave',function(current_page,view){
