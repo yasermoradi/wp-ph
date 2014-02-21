@@ -10,7 +10,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		
 		$query_args = array('post_type' => $post_type);
 			
-		$query_args['posts_per_page'] = 3; //TODO : dynamise this!!
+		$query_args['posts_per_page'] = get_option('posts_per_page');
 		
 		if( !empty($options['taxonomy']) && !empty($options['term']) ){
 			
