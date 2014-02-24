@@ -84,7 +84,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			'content' => '',
 			'excerpt' => '',
 			'featured_img' => '',
-			'author' => '',
+			'author' => get_the_author_meta('nickname'), 
 			'url' => get_permalink(),
 			'nb_comments' => (int)get_comments_number()
 		);
