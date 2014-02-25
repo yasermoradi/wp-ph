@@ -2,7 +2,7 @@
  * Defines "template tags like" functions that can be called from theme templates 
  * and theme functions.js. 
  */
-define(function (require) {
+define(function (require,exports) {
 
       "use strict";
 
@@ -124,5 +124,8 @@ define(function (require) {
 		  return get_more_link_display.nb_left;
 	  };
       
-	  return themeTplTags;
+	  //Use exports so that theme-tpl-tags and theme-app (which depend on each other, creating
+	  //a circular dependency for requirejs) can both be required at the same time 
+	  //(in theme functions.js for example) : 
+	  _.extend(exports,themeTplTags); 
 });

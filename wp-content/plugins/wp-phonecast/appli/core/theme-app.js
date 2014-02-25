@@ -2,7 +2,7 @@
  * Defines functions that can be called from theme functions.js. 
  * (Those functions can't be directly called form theme templates).
  */
-define(function (require) {
+define(function (require,exports) {
 
       "use strict";
 
@@ -11,7 +11,8 @@ define(function (require) {
           RegionManager       = require('core/region-manager'),
           Utils               = require('core/app-utils'),
           Config              = require('root/config'),
-          App                 = require('core/app');
+          App                 = require('core/app'),
+          TemplateTags        = require('core/theme-tpl-tags');
           
       var themeApp = {};
       
@@ -250,5 +251,8 @@ define(function (require) {
 		  //TODO : handle deactivation!
 	  };
       
-	  return themeApp;
+	  //Use exports so that theme-tpl-tags and theme-app (which depend on each other, creating
+	  //a circular dependency for requirejs) can both be required at the same time 
+	  //(in theme functions.js for example) : 
+	  _.extend(exports,themeApp);
 });
