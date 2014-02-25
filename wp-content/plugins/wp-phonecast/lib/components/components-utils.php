@@ -24,9 +24,6 @@ class WppcComponentsUtils{
 		$content = apply_filters('the_content', $content);
 		$content = str_replace(']]>', ']]&gt;', $content);
 	
-		//Replace classes for images with captions :
-		$content = preg_replace('/<div id="attachment_(\d+)"[^>]*?>/is', '<div id="attachment_$1" class="image-content" >', $content);
-	
 		$content = strip_tags($content,'<br/><br><p><div><h1><h2><h3><h4><h5><h6><a><span><sup><sub><img><i><em><strong><b><ul><ol><li><blockquote>');
 	
 		return $content;
