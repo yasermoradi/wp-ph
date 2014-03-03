@@ -119,6 +119,7 @@ define(function (require) {
 	    			&& (!$(elMenu).html().length || (force_reload!=undefined && force_reload) ) ){
 		    		menuView.render();
 		    		$(elMenu).empty().append(menuView.el);
+		    		vent.trigger('menu:refresh',App.getCurrentPageData(),menuView);
 		    		Utils.log('Render navigation',force_reload,menuView);
 	    		}
 	    	}else{

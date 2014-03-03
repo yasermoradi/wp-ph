@@ -24,7 +24,7 @@ define(function (require,exports) {
       //Event aggregator
 	  var vent = _.extend({}, Backbone.Events);
 	  themeApp.on = function(event,callback){
-		  if( _.contains(['page:leave','page:showed','header:render'], event) ){
+		  if( _.contains(['page:leave','page:showed','menu:refresh','header:render'], event) ){
 			  //Proxy RegionManager events :
 			  RegionManager.on(event,callback);
 		  }else{
