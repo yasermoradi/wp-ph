@@ -77,8 +77,10 @@ define(function (require) {
 				    		headerView = new HeaderView({
 				    			el:elHeader,
 				    			do_if_template_exists:function(view){
-					    			view.render();
-					    			cb();
+					    			if( layoutView.containsHeader() ){
+					    				view.render();
+					    			}
+				    				cb();
 					    		},
 					    		do_if_no_template:function(){
 					    			cb();
@@ -134,7 +136,7 @@ define(function (require) {
 	    };
 	    
 	    var renderSubRegions = function(){
-	    	if( headerView.templateExists() ){
+	    	if( headerView.templateExists() && layoutView.containsHeader() ){
 		    	headerView.render();
 		    	Utils.log('Render header',headerView);
 		    	if( headerView.containsMenu() ){
