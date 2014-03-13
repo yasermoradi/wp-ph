@@ -10,32 +10,61 @@ define(function (require) {
           Navigation          = require('core/models/navigation'),
           Items               = require('core/models/items'),
           Comments            = require('core/models/comments'),
+          Info                = require('core/models/info'),
           Config              = require('root/config'),
           Utils               = require('core/app-utils'),
           sha256              = require('core/lib/sha256');
       
 	  var app = {};
-	  var initializers = [];
 	  
-	  //Logic to do treatments after initializers are done.
-	  var after_initializers = [];
-	  var wait_events = [];
-	 
+	  //--------------------------------------------------------------------------
 	  //Event aggregator
 	  var vent = _.extend({}, Backbone.Events);
 	  app.on = function(event,callback){
 		  vent.on(event,callback);
 	  };
 	  
+	  //--------------------------------------------------------------------------
 	  //Error handling
-	  app.trigger_error = function(error_data,error_callback){
-	  	  if( error_callback != undefined ){
+	  
+	  app.triggerError = function(error_id,error_data,error_callback){
+		  vent.trigger('error:'+ error_id,error_data);
+		  Utils.log('app.js error ('+ error_id +') : '+ error_data.message, error_data);
+		  if( error_callback != undefined ){
 	  		error_callback(error_data);
 	  	  }
-		  vent.trigger('error',error_data);
 	  };
 	  
-	  //App initializer
+	  //--------------------------------------------------------------------------
+	  //Infos handling
+	  
+	  var current_info = new Info();
+	  
+	  var set_current_info = function(info_data){
+		  current_info = new Info(info_data);
+	  };
+	  
+	  app.getCurrentInfo = function(){
+		  return current_info;
+	  };
+	  
+	  /**
+	   * Displays an info page using the info.html template.
+	   * @param info_data see models/info.js for error fields
+	   */
+	  app.showInfoPage = function(info_data){
+		  if( info_data != undefined ){
+			  set_current_info(info_data);
+		  }
+		  app.router.navigate('info',{trigger: true});
+	  };
+	  
+	  //--------------------------------------------------------------------------
+	  //App initializer: logic to do treatments after initializers are done.
+	  var initializers = [];
+	  var after_initializers = [];
+	  var wait_events = [];
+	  
 	  app.addInitializer = function(callback,wait){
 	    var initializer = {
 	      obj: this,
@@ -81,6 +110,8 @@ define(function (require) {
 		  
 	  };
 	  
+	  //--------------------------------------------------------------------------
+	  //App Backbone router :
 	  app.router = null;
 	  
 	  //Router must be set before calling this resetDefaultRoute :
@@ -141,6 +172,9 @@ define(function (require) {
 				  //if( current_page.page_type == 'single' && current_page.item_id == item_id ){
 					  history_push(page_type,component_id,item_id,current_fragment,data);
 				  //}
+			  }else if( page_type == 'info' ){
+				  history_stack = [];
+				  history_push(page_type,component_id,item_id,current_fragment,data);
 			  }
 			  
 		  }
@@ -191,168 +225,27 @@ define(function (require) {
 	  var globals_keys = new Globals; 
 	  app.globals = {};
 	  
-	  var getToken = function(){
-		  var msg = "(_NJ`U&3}c$[ky.Io`@9 M%Q{'";
-    	  var date = new Date();
-    	  var month = date.getUTCMonth() + 1;
-    	  var day = date.getUTCDate();
-    	  var year = date.getUTCFullYear();
-    	  var date_str = year +'-'+ month +'-'+ day;
-    	  var hash = sha256(msg + date_str);
-    	  var token =  window.btoa(hash);
+	  var getToken = function(web_service){
+		  var token = '';
+		  if( Config.hasOwnProperty('auth_key') ){
+			  var key = Config.auth_key;
+			  var app_slug = Config.app_slug;
+	    	  var date = new Date();
+	    	  var month = date.getUTCMonth() + 1;
+	    	  var day = date.getUTCDate();
+	    	  var year = date.getUTCFullYear();
+	    	  if( month < 10 ){
+	    		  month = '0'+ month;
+	    	  }
+	    	  if( day < 10 ){
+	    		  day = '0'+ day;
+	    	  }
+	    	  var date_str = year +'-'+ month +'-'+ day;
+	    	  var hash = sha256(key + app_slug + date_str);
+	    	  token = '/'+ window.btoa(hash);
+		  }
     	  return token;
-	  }
-	  
-	  var syncWebService = function(cb_ok,cb_error,force_reload){
-		  var token = ''; //getToken();
-    	  var ws_url = token +'/synchronization/';
-    	  
-		  $.ajax({
-				url : Config.wp_ws_url + ws_url, 
-				timeout : 40000,
-				success : function(data) {
-				  
-					  app.components.resetAll();
-					  _.each(data.components,function(value, key, list){
-						  app.components.add({id:key,label:value.label,type:value.type,data:value.data,global:value.global});
-					  });
-					  app.components.saveAll();
-					  
-					  app.navigation.resetAll();
-					  _.each(data.navigation,function(value, key, list){
-						  app.navigation.add({id:key,component_id:key,data:{}});
-					  });
-					  app.navigation.saveAll();
-					  
-					  globals_keys.resetAll();
-					  _.each(data.globals,function(global, key, list){
-						  var items = new Items.Items({global:key});
-						  items.resetAll();
-						  _.each(global,function(item, id){
-							  items.add(_.extend({id:id},item));
-						  });
-						  items.saveAll();
-						  app.globals[key] = items;
-						  globals_keys.add({id:key});
-					  });
-					  globals_keys.saveAll();
-					  
-					  Utils.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
-
-					  cb_ok();
-				},
-			  	error : function(jqXHR, textStatus, errorThrown){
-			  		app.trigger_error(
-			  			{type:'ajax',where:'app::syncWebService',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
-    		  		    cb_error
-			  		);
-			  	}
-		  });
 	  };
-	  
-	  app.getPostComments = function(post_id,cb_ok,cb_error){
-    	  var token = ''; //getToken();
-    	  var ws_url = token +'/comments-post/'+ post_id;
-    	  
-    	  var comments = new Comments.Comments;
-    	  
-    	  var post = app.globals['posts'].get(post_id);
-    	  
-    	  if( post != undefined ){
-	    	  $.ajax({
-	    		  type: 'GET',
-	    		  url: Config.wp_ws_url + ws_url,
-	    		  success: function(data) {
-		    		  	_.each(data.items,function(value, key, list){
-		    		  		comments.add(value);
-		    	  		});
-		    		  	cb_ok(comments,post);
-		    	  },
-		    	  error: function(jqXHR, textStatus, errorThrown){
-		    		  app.trigger_error(
-		    			  {type:'ajax',where:'app::getPostComments',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
-	    		  		  cb_error
-	        		  );
-		    	  }
-	    	  });
-    	  }else{
-    		  app.trigger_error(
-    			  {type:'not-found',where:'app::getPostComments',data:{message:'Post '+ post_id +' not found.'}},
-		  		  cb_error
-    		  );
-    	  }
-      };
-      
-      app.getMoreOfComponent = function(component_id,cb_ok,cb_error){
-    	  var component = app.components.get(component_id);
-    	  if( component ){
-	    	  var token = ''; //getToken();
-	    	  var ws_url = token +'/component/'+ component_id;
-	    	  
-	    	  var last_item_id = component.getLastItemId();
-	    	  ws_url += '?before_item='+ last_item_id;
-	    	  
-	    	  $.ajax({
-	    		  type: 'GET',
-	    		  url: Config.wp_ws_url + ws_url,
-	    		  success: function(answer) {
-		    		  if( answer.result && answer.result.status == 1 ){
-		    			  if( answer.component.slug == component_id ){
-		    				  var global = answer.component.global;
-		    				  if( app.globals.hasOwnProperty(global) ){
-		    					  
-		    					  var component_data = component.get('data');
-		    					  
-		    					  var new_ids = _.difference(answer.component.data.ids,component_data.ids);
-		    					  
-		    					  component_data.ids = _.union(component_data.ids,answer.component.data.ids); //merge ids
-		    					  component.set('data',component_data);
-		    					  
-			    				  var current_items = app.globals[global];
-								  _.each(answer.globals[global],function(item, id){
-									  current_items.add(_.extend({id:id},item)); //auto merges if "id" already in items
-								  });
-								  
-		    					  var new_items = [];
-								  _.each(new_ids,function(item_id){
-									  new_items.push(current_items.get(item_id));
-			          	  		  });
-								  
-								  var nb_left = component_data.total - component_data.ids.length;
-								  var is_last = !_.isEmpty(answer.component.data.query.is_last_page) ? true : nb_left <= 0;  
-								  
-								  Utils.log('More content retrieved for component',component_id,new_ids,new_items,component);
-								  
-								  cb_ok(new_items,is_last,{nb_left:nb_left,new_ids:new_ids,global:global,component:component});
-								  
-		    				  }else{
-			    				  app.trigger_error(
-			    					  {type:'not found',where:'app::getMoreOfComponent',data:{message:'Global not found : '+ global}},
-							  		  cb_error
-					    		  );
-			    			  }
-		    			  }else{
-						  	  app.trigger_error(
-						  		  {type:'not found',where:'app::getMoreOfComponent',data:{message:'Wrong component id : '+ component_id}},
-						  		  cb_error
-				    		  );
-		    			  }
-		    		  }else{
-					  	  app.trigger_error(
-					  		  {type:'web-service',where:'app::getMoreOfComponent',data:{message:answer.message}},
-					  		  cb_error
-			    		  );
-		    		  }
-		    	  },
-		    	  error: function(jqXHR, textStatus, errorThrown){
-		    		  app.trigger_error(
-		    			  {type:'ajax',where:'app::getMoreOfComponent',data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
-		    			  cb_error
-		    		  );
-		    	  }
-	    	  });
-    	  }
-      };
 	  
 	  app.sync = function(cb_ok,cb_error,force_reload){
 		  
@@ -403,6 +296,204 @@ define(function (require) {
 	    		 }
 		  }});
 		  
+      };
+      
+	  var syncWebService = function(cb_ok,cb_error,force_reload){
+		  var token = getToken('synchronization');
+    	  var ws_url = token +'/synchronization/';
+    	  
+		  $.ajax({
+				url : Config.wp_ws_url + ws_url, 
+				timeout : 40000,
+				dataType : 'json',
+				success : function(data) {
+				  	  if( data.hasOwnProperty('result') && data.result.hasOwnProperty('status') ){
+				  		  if( data.result.status == 1 ){
+				  			  if( data.hasOwnProperty('components') 
+				  				  && data.hasOwnProperty('navigation')
+				  				  && data.hasOwnProperty('globals')
+				  				  ){
+				  				  
+					  			  app.components.resetAll();
+								  _.each(data.components,function(value, key, list){
+									  app.components.add({id:key,label:value.label,type:value.type,data:value.data,global:value.global});
+								  });
+								  app.components.saveAll();
+								  
+								  app.navigation.resetAll();
+								  _.each(data.navigation,function(value, key, list){
+									  app.navigation.add({id:key,component_id:key,data:{}});
+								  });
+								  app.navigation.saveAll();
+								  
+								  globals_keys.resetAll();
+								  _.each(data.globals,function(global, key, list){
+									  var items = new Items.Items({global:key});
+									  items.resetAll();
+									  _.each(global,function(item, id){
+										  items.add(_.extend({id:id},item));
+									  });
+									  items.saveAll();
+									  app.globals[key] = items;
+									  globals_keys.add({id:key});
+								  });
+								  globals_keys.saveAll();
+								  
+								  Utils.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
+
+								  cb_ok();
+				  			  }else{
+				  				  app.triggerError(
+				  						'synchro:wrong-answer',
+							  			{type:'ws-data',where:'app::syncWebService',message: 'Wrong "synchronization" web service answer',data: data},
+				    		  		    cb_error
+							  	  );
+				  			  }
+				  			  
+				  		  }else if( data.result.status == 0 ){
+				  			  app.triggerError(
+				  					'synchro:ws-return-error',
+						  			{type:'ws-data',where:'app::syncWebService',message: 'Web service "synchronization" returned an error : ['+ data.result.message +']', data:data},
+			    		  		    cb_error
+						  	  );
+				  		  }else{
+				  			  app.triggerError(
+				  					'synchro:wrong-status',
+						  			{type:'ws-data',where:'app::syncWebService',message: 'Wrong web service answer status',data: data},
+			    		  		    cb_error
+						  	  );
+				  		  }
+				  	  }else{
+				  		  app.triggerError(
+				  				'synchro:wrong-format',
+					  			{type:'ws-data',where:'app::syncWebService',message: 'Wrong web service answer format',data: data},
+		    		  		    cb_error
+					  	  );
+				  	  }
+					  
+				},
+			  	error : function(jqXHR, textStatus, errorThrown){
+			  		app.triggerError(
+			  			'synchro:ajax',
+			  			{type:'ajax',where:'app::syncWebService',message: textStatus + ': '+ errorThrown, data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+    		  		    cb_error
+			  		);
+			  	}
+		  });
+	  };
+	  
+	  app.getPostComments = function(post_id,cb_ok,cb_error){
+    	  var token = getToken('comments-post');
+    	  var ws_url = token +'/comments-post/'+ post_id;
+    	  
+    	  var comments = new Comments.Comments;
+    	  
+    	  var post = app.globals['posts'].get(post_id);
+    	  
+    	  if( post != undefined ){
+	    	  $.ajax({
+	    		  type: 'GET',
+	    		  url: Config.wp_ws_url + ws_url,
+	    		  success: function(data) {
+		    		  	_.each(data.items,function(value, key, list){
+		    		  		comments.add(value);
+		    	  		});
+		    		  	cb_ok(comments,post);
+		    	  },
+		    	  error: function(jqXHR, textStatus, errorThrown){
+		    		  app.triggerError(
+		    			  'comments:ajax',
+		    			  {type:'ajax',where:'app::getPostComments',message: textStatus + ': '+ errorThrown,data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+	    		  		  cb_error
+	        		  );
+		    	  }
+	    	  });
+    	  }else{
+    		  app.triggerError(
+    			  'comments:post-not-found',
+    			  {type:'not-found',where:'app::getPostComments',message:'Post '+ post_id +' not found.'},
+		  		  cb_error
+    		  );
+    	  }
+      };
+      
+      app.getMoreOfComponent = function(component_id,cb_ok,cb_error){
+    	  var component = app.components.get(component_id);
+    	  if( component ){
+	    	  var token = getToken('component');
+	    	  var ws_url = token +'/component/'+ component_id;
+	    	  
+	    	  var last_item_id = component.getLastItemId();
+	    	  ws_url += '?before_item='+ last_item_id;
+	    	  
+	    	  $.ajax({
+	    		  type: 'GET',
+	    		  url: Config.wp_ws_url + ws_url,
+	    		  success: function(answer) {
+		    		  if( answer.result && answer.result.status == 1 ){
+		    			  if( answer.component.slug == component_id ){
+		    				  var global = answer.component.global;
+		    				  if( app.globals.hasOwnProperty(global) ){
+		    					  
+		    					  var component_data = component.get('data');
+		    					  
+		    					  var new_ids = _.difference(answer.component.data.ids,component_data.ids);
+		    					  
+		    					  component_data.ids = _.union(component_data.ids,answer.component.data.ids); //merge ids
+		    					  component.set('data',component_data);
+		    					  
+			    				  var current_items = app.globals[global];
+								  _.each(answer.globals[global],function(item, id){
+									  current_items.add(_.extend({id:id},item)); //auto merges if "id" already in items
+								  });
+								  
+		    					  var new_items = [];
+								  _.each(new_ids,function(item_id){
+									  new_items.push(current_items.get(item_id));
+			          	  		  });
+								  
+								  var nb_left = component_data.total - component_data.ids.length;
+								  var is_last = !_.isEmpty(answer.component.data.query.is_last_page) ? true : nb_left <= 0;  
+								  
+								  Utils.log('More content retrieved for component',component_id,new_ids,new_items,component);
+								  
+								  cb_ok(new_items,is_last,{nb_left:nb_left,new_ids:new_ids,global:global,component:component});
+								  
+		    				  }else{
+			    				  app.triggerError(
+			    					  'getmore:global-not-found',
+			    					  {type:'not found',where:'app::getMoreOfComponent',message:'Global not found : '+ global},
+							  		  cb_error
+					    		  );
+			    			  }
+		    			  }else{
+						  	  app.triggerError(
+						  		  'getmore:wrong-component-id',
+						  		  {type:'not found',where:'app::getMoreOfComponent',message:'Wrong component id : '+ component_id},
+						  		  cb_error
+				    		  );
+		    			  }
+		    		  }else{
+					  	  app.triggerError(
+					  		  'getmore:ws-return-error',
+					  		  {type:'web-service',where:'app::getMoreOfComponent',message:'Web service "component" returned an error : ['+ answer.result.message +']'},
+					  		  cb_error
+			    		  );
+		    		  }
+		    	  },
+		    	  error: function(jqXHR, textStatus, errorThrown){
+		    		  app.triggerError(
+		    			  'getmore:ajax',
+		    			  {type:'ajax',where:'app::getMoreOfComponent',message: textStatus + ': '+ errorThrown,data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+		    			  cb_error
+		    		  );
+		    	  }
+	    	  });
+    	  }
+      };
+	  
+      app.alertNoContent = function(){
+    	  vent.trigger('info:no-content');
       };
       
 	  return app;

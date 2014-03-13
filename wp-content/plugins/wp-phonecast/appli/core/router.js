@@ -16,7 +16,8 @@ define(function (require) {
             "single-:id" : "single",
             "page-:id" : "page",
             "comments-:post_id" : "comments",
-            "component-:id" : "component"
+            "component-:id" : "component",
+            "info" : "info"
         },
  
         setDefaultRoute : function(_default_route){
@@ -111,10 +112,22 @@ define(function (require) {
 	        			RegionManager.stopWaiting();
 		        	},
 		        	function(error){
-		        		Utils.log('Error : App.getPostComments failed',error);
+		        		Utils.log('router.js error : App.getPostComments failed',error);
 		        		RegionManager.stopWaiting();
 		        	}
 		        );
+        	});
+        },
+        
+        info: function(){
+        	RegionManager.startWaiting();
+        	require(["core/app","core/views/info"],function(App,InfoView){
+        		var current_page = App.getCurrentPageData();
+        		var current_info = App.getCurrentInfo();
+        		RegionManager.leave(current_page);
+        		App.addToHistory('info','','',current_info);
+        		RegionManager.show(new InfoView({info:current_info}));
+        		RegionManager.stopWaiting();
         	});
         }
         

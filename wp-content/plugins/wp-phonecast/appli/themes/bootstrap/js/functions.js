@@ -28,6 +28,9 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 		}
 	}); 
 	
+	App.on('menu:refresh',function(current_page){
+	});
+	
 	App.on('refresh:start',function(){
 		$('#refresh-button').addClass('refreshing');
 	});
@@ -40,6 +43,12 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	
 	App.on('error',function(error){
 		$('#feedback').addClass('error').html(error.message).slideDown();
+	});
+	
+	App.on('info',function(info){
+		if( info.event == 'no-content' ){
+			App.showInfoPage(info.message); //Set your own custom message here
+		}
 	});
 	
 	$('body').click(function(e){

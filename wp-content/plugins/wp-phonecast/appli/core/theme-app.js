@@ -37,8 +37,8 @@ define(function (require,exports) {
 		  
 		  var theme_event_data = format_theme_event_data(event,data);
 		  
-		  if( theme_event_data.type == 'error' ){
-			  vent.trigger('error',theme_event_data);
+		  if( theme_event_data.type == 'error' || theme_event_data.type == 'info' ){
+			  vent.trigger(theme_event_data.type,theme_event_data);
 		  }
 		  
 	  });
@@ -46,27 +46,61 @@ define(function (require,exports) {
 	  //Format events feedbacks
 	  var format_theme_event_data = function(event,data){
 		  
-		  var theme_event_data = {type:'', message:'', data:{}, original_data:data, original_event:event};
+		  var theme_event_data = {event:event, type:'', message:'', data:data};
 		  
-		  if( event == 'error' ){
+		  if( event.indexOf('error:') === 0 ){
 			  
 			  theme_event_data.type = 'error';
+			  theme_event_data.event = event.replace('error:','');
+			  
+			  //Error types (data.type) can be : 
+			  // - 'ajax'
+			  // - 'ws-data'
+			  // - 'not-found'
 			  
 			  if( data.type == 'ajax' ){
-				  theme_event_data.message = 'Remote connexion to website failed'; // + ' ('+ data.data.url +')'; 
-				  // + ' ('+ data.data.textStatus + ', '+ data.data.errorThrown +')';
+				  theme_event_data.message = 'Remote connexion to website failed'; 
 			  }
 			  else{
 				  theme_event_data.message = 'Oops, an error occured...';
 			  }
 			  
-			  Utils.log('Error event triggered',data);
+		  }else if( event.indexOf('info:') === 0 ){
+			  
+			  theme_event_data.type = 'info';
+			  theme_event_data.event = event.replace('info:','');
+			  
+			  if( event == 'info:no-content' ){
+				  theme_event_data.message = "The application couldn't retrieve any content, please check your internet connexion!";
+			  }
 			  
 		  }
 		  
 		  return theme_event_data;
 	  };
 	  
+	  /************************************************
+	   * App infos management
+	   */
+	  
+	  themeApp.showInfoPage = function(content,title,type,data){
+		  if( title == undefined ){
+			  title = '';
+		  }
+		  if( type == undefined ){
+			  type = 'warning';
+		  }
+		  if( data == undefined ){
+			  data = {};
+		  }
+		  var info = {
+				  type: type,
+				  title: title,
+				  content: content,
+				  data: data
+		  };
+		  App.showInfoPage(info);
+	  };
 	  
 	  /************************************************
 	   * App contents refresh

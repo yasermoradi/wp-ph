@@ -65,16 +65,18 @@ require(['root/config'],function(Config){
 											},
 											function(){
 												Backbone.history.start();
-												Utils.log("Error : App could not synchronize with website.");
+												Utils.log("launch.js error : App could not synchronize with website.");
 												RegionManager.stopWaiting();
 												PhoneGap.hideSplashScreen();
+												
+												App.alertNoContent();
 											},
 											false //true to force refresh local storage at each app launch.
 										);
 								
 									},
 									function(error){ 
-										Utils.log('Warning : theme/js/functions.js not found', error); 
+										Utils.log('Error : theme/js/functions.js not found', error); 
 									}
 							);  
 							

@@ -23,7 +23,7 @@ define(function (require) {
   						args.do_if_template_exists(_this);
   	      		  	},
   	      		  	function(error){
-  	      		  		Utils.log('Info : no theme/header.html found in theme', error); 
+  	      		  		Utils.log('Info : no theme/header.html found in theme'); 
   	      		  		args.do_if_no_template();
   	      		  	}
   			);
