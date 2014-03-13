@@ -35,7 +35,7 @@ class WppcBuild{
 	
 	public static function inner_simulation_box($post,$current_box){
 		$debug_mode = self::get_app_debug_mode_raw($post->ID);
-		$wp_ws_url = WppcWebServices::get_app_web_service_url($post->ID) .'/synchronization';
+		$wp_ws_url = WppcWebServices::get_app_web_service_url($post->ID,'synchronization');
 		$appli_url = self::get_appli_index_url($post->ID);
 		?>
 		<label><?php _e('Debug Mode') ?> : </label>
@@ -56,8 +56,10 @@ class WppcBuild{
 		<a href="<?php echo self::get_appli_dir_url() .'/config.js?wppc_app_id='. WppcApps::get_app_slug($post->ID) ?>"><?php _e('View config.js') ?></a>
 		<br/>
 		<br/>
-		<label><?php _e('Web services') ?> :</label><br/>
-		<?php _e('Synchronization') ?> : <a href="<?php echo $wp_ws_url ?>"><?php echo $wp_ws_url ?></a>
+		<div style="word-wrap: break-word;">
+			<label><?php _e('Web services') ?> :</label><br/>
+			<?php _e('Synchronization') ?> : <a href="<?php echo $wp_ws_url ?>"><?php echo $wp_ws_url ?></a>
+		</div>
 		<?php 
 	}
 	
@@ -390,16 +392,18 @@ class WppcBuild{
 		$export_filename_base = self::get_export_file_base_name($app_id);
 		$export_directory = self::get_export_files_path();
 		
-		if( $handle = opendir($export_directory) ){
-			while( false !== ($entry = readdir($handle)) ){
-				if( strpos($entry,$export_filename_base) !== false ){
-					$entry_date = preg_replace('/'.$export_filename_base.'-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.zip/','$1-$2-$3 $4:$5:$6',$entry);
-					$available_exports[strtotime($entry_date)] = $entry;
+		if( self::create_export_directory_if_doesnt_exist() ){
+			if( $handle = opendir($export_directory) ){
+				while( false !== ($entry = readdir($handle)) ){
+					if( strpos($entry,$export_filename_base) !== false ){
+						$entry_date = preg_replace('/'.$export_filename_base.'-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.zip/','$1-$2-$3 $4:$5:$6',$entry);
+						$available_exports[strtotime($entry_date)] = $entry;
+					}
 				}
-			}
-			closedir($handle);
-			if( !empty($available_exports) ){
-				krsort($available_exports);
+				closedir($handle);
+				if( !empty($available_exports) ){
+					krsort($available_exports);
+				}
 			}
 		}
 

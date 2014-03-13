@@ -1,5 +1,6 @@
 <?php 
 require_once(dirname(__FILE__) .'/web-services-crud.php');
+require_once(dirname(__FILE__) .'/token.php');
 require_once(dirname(__FILE__) .'/../cache/web-services-cache.php');
 
 class WppcWebServices{
@@ -16,8 +17,8 @@ class WppcWebServices{
 		
 		add_rewrite_rule('^phonecast-api/public/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_id=$matches[3]&wppc_action=one', 'top');
 		add_rewrite_rule('^phonecast-api/public/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_slug=$matches[2]&wppc_action=list', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_id=$matches[4]&wppc_action=one', 'top');
-		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=1&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_action=list', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=2&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_id=$matches[4]&wppc_action=one', 'top');
+		add_rewrite_rule('^phonecast-api/(.+?)/(.+?)/(.+?)/?$', 'index.php?wppc=2&wppc_app_id=$matches[1]&wppc_token=$matches[2]&wppc_slug=$matches[3]&wppc_action=list', 'top');
 
 		//To define rewrite rules specific to a web service created via hooks (see web-services-crud.php) :
 		add_action('wppc_add_rewrite_rules','');
@@ -28,13 +29,13 @@ class WppcWebServices{
 	
 		if( isset($wp_query->query_vars['wppc']) && !empty($wp_query->query_vars['wppc']) ){
 				
-			if( $wp_query->query_vars['wppc'] == 1 ){
+			if( $wp_query->query_vars['wppc'] == 1 || $wp_query->query_vars['wppc'] == 2 ){
 				
 				if( !empty($wp_query->query_vars['wppc_app_id']) ){
 					if( !empty($wp_query->query_vars['wppc_slug']) ){
 						$web_service_slug = $wp_query->query_vars['wppc_slug'];
 						if( self::web_service_exists($web_service_slug) ){
-							if( self::check_token($web_service_slug) ){
+							if( self::check_token($web_service_slug,$wp_query->query_vars['wppc_app_id']) ){
 								$id = isset($wp_query->query_vars['wppc_id']) ? $wp_query->query_vars['wppc_id'] : 0;
 								self::exit_handle_request($wp_query->query_vars['wppc_app_id'],$web_service_slug,$wp_query->query_vars['wppc_action'],$id);
 							}else{
@@ -299,34 +300,28 @@ class WppcWebServices{
 		return apply_filters('mrlws_result_attribute','result',$result_info,$service_answer,$app_id,$service_slug);
 	}
 	
-	//TODO_WPPC
-	private static function check_token($service){
+	private static function check_token($service_slug,$app_id){
 		global $wp_query;
-		$token_ok = true;
-		if( false && !empty($service['token_activated'] ) ){
-				
-			$token = '';
-			if( $service['token_type'] == 'url' && !empty($wp_query->query_vars['ews_token']) ){
-				$token = $wp_query->query_vars['ews_token'];
-			}elseif( $service['token_type'] == 'get' && !empty($service['token']) && !empty($_GET[$service['token']]) ){
-				$token = $_GET[$service['token']];
-			}
-				
-			if( !empty($token) ){
-				$hooked_token = apply_filters('mrlws_generate_token','',$service);
-				if( !empty($hooked_token) ){
-					$token_ok = apply_filters('mrlws_check_token',null,$token,$hooked_token,$service);
-					if( $token_ok === null ){
-						$token_ok = ($token == $hooked_token);
-					}
-				}else{
-					$token_nonce_key = apply_filters('mrlws_token_nonce_key','web_service_token_'. $service['slug'],$service);
-					$token_ok = wp_verify_nonce($token,$token_nonce_key);
-				}
-			}else{
-				$token_ok = false;
-			}
+		
+		$public = $wp_query->query_vars['wppc'] == 1;
+		if( $public ){
+			$app_id = WppcApps::get_app_id($app_id);
+			return !WppcApps::get_app_is_secured($app_id);
 		}
+
+		$token_ok = false;
+		
+		$token_type = self::get_token_type();
+		
+		$token = '';
+		if( $token_type == 'url' && !empty($wp_query->query_vars['wppc_token']) ){
+			$token = $wp_query->query_vars['wppc_token'];
+		}elseif( $token_type == 'get' && !empty($_GET['token']) ){
+			$token = $_GET['token'];
+		}
+		
+		$token_ok = !empty($token) ? WppcToken::check_token($token,$app_id,$service_slug) : false;
+			
 		return $token_ok;
 	}
 	
@@ -380,9 +375,36 @@ class WppcWebServices{
 		return $cache_id;
 	}
 	
-	public static function get_app_web_service_url($app_id_or_slug){
-		$public = '/public'; //TODO dynamise this according to app token activation
-		return get_bloginfo('wpurl') .'/phonecast-api'. $public .'/'. WppcApps::get_app_slug($app_id_or_slug);
+	public static function get_app_web_service_base_url($app_id_or_slug){
+		$url = get_bloginfo('wpurl') .'/phonecast-api';
+	
+		$app_slug = WppcApps::get_app_slug($app_id_or_slug);
+		$app_id = WppcApps::get_app_id($app_id_or_slug);
+	
+		if( WppcApps::get_app_is_secured($app_id) ){
+			$url .= '/'. $app_slug;
+		}else{
+			$url .= '/public/'. $app_slug;
+		}
+	
+		return $url;
+	}
+	
+	public static function get_app_web_service_url($app_id_or_slug,$web_service_slug){
+		
+		$url = self::get_app_web_service_base_url($app_id_or_slug);
+		
+		$app_slug = WppcApps::get_app_slug($app_id_or_slug);
+		$app_id = WppcApps::get_app_id($app_id_or_slug);
+		
+		if( WppcApps::get_app_is_secured($app_id) ){
+			$token = WppcToken::get_token($app_slug,$web_service_slug);
+			$url .= '/'. $token;
+		}
+		
+		$url .= '/'. $web_service_slug;
+		
+		return $url;
 	}
 	
 	private static function web_service_exists($web_service_slug){
@@ -393,6 +415,11 @@ class WppcWebServices{
 		|| isset($wp_filter['wppc_create_'. $web_service_slug])
 		|| isset($wp_filter['wppc_delete_'. $web_service_slug])
 		;
+	}
+	
+	private static function get_token_type(){
+		$token_type = 'url'; //TODO : type = 'get' + dynamise as BO option
+		return $token_type;
 	}
 	
 	/*

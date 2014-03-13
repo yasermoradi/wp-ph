@@ -94,6 +94,15 @@ class WppcApps{
 			'default'
 		);
 		
+		add_meta_box(
+			'wppc_app_security',
+			__('Security'),
+			array(__CLASS__,'inner_security_box'),
+			'wppc_apps',
+			'side',
+			'default'
+		);
+		
 	}
 	
 	public static function inner_main_infos_box($post,$current_box){
@@ -151,6 +160,17 @@ class WppcApps{
 			<br/><br/>
 			<a href="<?php echo WppcBuild::get_appli_dir_url() .'/config.xml?wppc_app_id='. self::get_app_slug($post->ID) ?>"><?php _e('View config.xml') ?></a>
 		</div>
+		<?php
+	}
+	
+	public static function inner_security_box($post,$current_box){
+		$secured = self::get_app_is_secured($post->ID);
+		?>
+		<label><?php _e('Secured web services') ?></label> : <br/>
+		<select name="wppc_app_secured">
+			<option value="1" <?php echo $secured ? 'selected="selected"' : '' ?>><?php _e('Yes') ?></option>
+			<option value="0" <?php echo !$secured ? 'selected="selected"' : '' ?>><?php _e('No') ?></option>
+		</select>
 		<?php
 	}
 		
@@ -215,6 +235,12 @@ class WppcApps{
 	    if ( isset( $_POST['wppc_app_author_email'] ) ) {
 	    	update_post_meta( $post_id, '_wppc_app_author_email', sanitize_text_field( $_POST['wppc_app_author_email'] ) );
 	    }
+	    
+	    if ( isset( $_POST['wppc_app_secured'] ) ) {
+	    	update_post_meta( $post_id, '_wppc_app_secured', sanitize_text_field( $_POST['wppc_app_secured'] ) );
+	    }
+	     
+	    
 	}
 	
 	private static function get_platforms(){
@@ -311,6 +337,12 @@ class WppcApps{
 					 'author_website'=>$author_website,
 					 'author_email'=>$author_email
 					 );
+	}
+	
+	public static function get_app_is_secured($post_id){
+		$secured_raw = get_post_meta($post_id,'_wppc_app_secured',true);
+		$secured_raw = $secured_raw === '' || $secured_raw === false ? 1 : $secured_raw;
+		return intval($secured_raw) == 1;
 	}
 	
 }

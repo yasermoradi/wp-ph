@@ -54,27 +54,39 @@ class WppcConfigFile{
 	}
 	
 	public static function get_config_js($app_id,$echo=false){
-		$wp_ws_url = WppcWebServices::get_app_web_service_url($app_id);
+		$wp_ws_url = WppcWebServices::get_app_web_service_base_url($app_id);
 		$theme = WppcThemesStorage::get_current_theme($app_id);
 			
+		$app_slug = WppcApps::get_app_slug($app_id);
+		
 		$app_main_infos = WppcApps::get_app_main_infos($app_id);
 		$app_title = $app_main_infos['title'];
 			
 		$debug_mode = WppcBuild::get_app_debug_mode($app_id);
 
+		$auth_key = WppcApps::get_app_is_secured($app_id) ? WppcToken::get_hash_key() : '';
+		//TODO : options to choose if the auth key is displayed in config.js.
+		
 		if( !$echo ){
 			ob_start();
 		}
 ?>
 define(function (require) {
 
-    "use strict";
+	"use strict";
 
-    return {
+	return {
+		app_slug : '<?php echo $app_slug ?>',
 		wp_ws_url : '<?php echo $wp_ws_url ?>',
 		theme : '<?php echo addslashes($theme) ?>',
 		app_title : '<?php echo addslashes($app_title) ?>',
-		debug_mode : '<?php echo $debug_mode ?>'
+		debug_mode : '<?php echo $debug_mode ?>'<?php 
+			if( !empty($auth_key) ):
+		?>,
+		auth_key : '<?php echo $auth_key ?>'<?php
+			endif 
+		?>
+		
 	};
 
 });
