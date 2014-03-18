@@ -1,5 +1,5 @@
 <div id="info">
-	<h1>Information</h1>
+	<h1><% print(info.title.length ? info.title : 'Information') %></h1>
 	<div id="info-content">
 		<%= info.content %>
 	</div>

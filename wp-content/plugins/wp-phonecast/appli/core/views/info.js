@@ -20,8 +20,10 @@ define(function (require) {
         },
 
         render : function() {
-        	var renderedContent = this.template({ info : this.info.toJSON(), TemplateTags : ThemeTplTags });
-            $(this.el).html(renderedContent); 
+        	if( this.info !== null ){
+        		var renderedContent = this.template({ info : this.info.toJSON(), TemplateTags : ThemeTplTags });
+        		$(this.el).html(renderedContent);
+        	}
             return this;
         }
         

@@ -120,14 +120,14 @@ define(function (require) {
         },
         
         info: function(){
-        	RegionManager.startWaiting();
         	require(["core/app","core/views/info"],function(App,InfoView){
-        		var current_page = App.getCurrentPageData();
         		var current_info = App.getCurrentInfo();
-        		RegionManager.leave(current_page);
-        		App.addToHistory('info','','',current_info);
-        		RegionManager.show(new InfoView({info:current_info}));
-        		RegionManager.stopWaiting();
+        		if( current_info !== null ){
+	        		var current_page = App.getCurrentPageData();
+	        		RegionManager.leave(current_page);
+	        		App.addToHistory('info','','',current_info);
+	        		RegionManager.show(new InfoView({info:current_info}));
+        		}
         	});
         }
         

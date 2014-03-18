@@ -13,6 +13,7 @@ define(function (require) {
           Info                = require('core/models/info'),
           Config              = require('root/config'),
           Utils               = require('core/app-utils'),
+          Filter              = require('core/lib/filter'),
           sha256              = require('core/lib/sha256');
       
 	  var app = {};
@@ -38,7 +39,7 @@ define(function (require) {
 	  //--------------------------------------------------------------------------
 	  //Infos handling
 	  
-	  var current_info = new Info();
+	  var current_info = null;
 	  
 	  var set_current_info = function(info_data){
 		  current_info = new Info(info_data);
@@ -227,8 +228,10 @@ define(function (require) {
 	  
 	  var getToken = function(web_service){
 		  var token = '';
+		  var key = '';
+		  
 		  if( Config.hasOwnProperty('auth_key') ){
-			  var key = Config.auth_key;
+			  key = Config.auth_key;
 			  var app_slug = Config.app_slug;
 	    	  var date = new Date();
 	    	  var month = date.getUTCMonth() + 1;
@@ -242,8 +245,15 @@ define(function (require) {
 	    	  }
 	    	  var date_str = year +'-'+ month +'-'+ day;
 	    	  var hash = sha256(key + app_slug + date_str);
-	    	  token = '/'+ window.btoa(hash);
+	    	  token = window.btoa(hash);
 		  }
+		  
+		  token = Filter.applyFilter('get-token',token,[key,web_service]);
+		  
+		  if( token.length ){
+			  token = '/'+ token;
+		  }
+		  
     	  return token;
 	  };
 	  

@@ -122,7 +122,7 @@ define(function (require) {
 		    		menuView.render();
 		    		$(elMenu).empty().append(menuView.el);
 		    		vent.trigger('menu:refresh',App.getCurrentPageData(),menuView);
-		    		Utils.log('Render navigation',force_reload,menuView);
+		    		Utils.log('Render navigation',menuView,force_reload);
 	    		}
 	    	}else{
 	    		if( $(elMenu).html().length ){

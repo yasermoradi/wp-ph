@@ -12,6 +12,7 @@ define(function (require,exports) {
           Utils               = require('core/app-utils'),
           Config              = require('root/config'),
           App                 = require('core/app'),
+          Filter              = require('core/lib/filter'),
           TemplateTags        = require('core/theme-tpl-tags');
           
       var themeApp = {};
@@ -38,7 +39,9 @@ define(function (require,exports) {
 		  var theme_event_data = format_theme_event_data(event,data);
 		  
 		  if( theme_event_data.type == 'error' || theme_event_data.type == 'info' ){
-			  vent.trigger(theme_event_data.type,theme_event_data);
+			  //2 ways of binding to error and info events :
+			  vent.trigger(event,theme_event_data); //Ex: bind directly to 'info:no-content'
+			  vent.trigger(theme_event_data.type,theme_event_data); //Ex: bind to general 'info', then filter with if( info.event == 'no-content' )
 		  }
 		  
 	  });
@@ -78,6 +81,15 @@ define(function (require,exports) {
 		  
 		  return theme_event_data;
 	  };
+
+	  
+	  /************************************************
+	   * Filters management
+	   */
+	  themeApp.filter = function (filter,callback){
+		  Filter.addFilter(filter,callback);
+	  }
+	  
 	  
 	  /************************************************
 	   * App infos management

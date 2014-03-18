@@ -1,34 +1,19 @@
 define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'],function($,App,Storage){
 	
-	function closeMenu(){
-		var navbar_toggle_button = $(".navbar-toggle").eq(0);
-		if( !navbar_toggle_button.hasClass('collapsed') ){
-			navbar_toggle_button.click(); 
-		}
-	}
+	//Example of how to overide the web services token computation :
+	App.filter('get-token',function(token,auth_key,web_service){
+		//Here you can make your own token computation, provided you've done the same  
+		//on Wordpress side using the "wppc_generate_token" hook !
+		return token; //For this example, we do nothing, just return the default token.
+	});
 	
-	function scrollTop(){
-		window.scrollTo(0,0);
-	}
-	
+	//Launch app contents refresh when clicking the refresh button :
 	$('#refresh-button').click(function(e){
 		e.preventDefault();
 		closeMenu();
 		App.refresh(function(){
 			$('#feedback').removeClass('error').html('Content updated successfully :)').slideDown();
 		});
-	});
-	
-	//Automatically shows and hide Back button according to current page
-	App.setAutoBackButton($('#go-back'),function(back_button_showed){
-		if(back_button_showed){
-			$('#refresh-button').hide();
-		}else{
-			$('#refresh-button').show();
-		}
-	}); 
-	
-	App.on('menu:refresh',function(current_page){
 	});
 	
 	App.on('refresh:start',function(){
@@ -50,6 +35,15 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 			App.showInfoPage(info.message); //Set your own custom message here
 		}
 	});
+	
+	//Automatically shows and hide Back button according to current page
+	App.setAutoBackButton($('#go-back'),function(back_button_showed){
+		if(back_button_showed){
+			$('#refresh-button').hide();
+		}else{
+			$('#refresh-button').show();
+		}
+	}); 
 	
 	$('body').click(function(e){
 		$('#feedback').slideUp();
@@ -96,5 +90,24 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 			scrollTop();
 		}
 	});
+	
+	/*
+	//Example of how to display your own, customized info page :
+	$('#container').on('click','#custom-info',function(e){
+		e.preventDefault();
+		App.showInfoPage("This is a custom info message!","Custom info"); 
+	});
+	*/
+	
+	function closeMenu(){
+		var navbar_toggle_button = $(".navbar-toggle").eq(0);
+		if( !navbar_toggle_button.hasClass('collapsed') ){
+			navbar_toggle_button.click(); 
+		}
+	}
+	
+	function scrollTop(){
+		window.scrollTo(0,0);
+	}
 	
 });
