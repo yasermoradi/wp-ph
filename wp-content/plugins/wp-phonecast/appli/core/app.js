@@ -13,7 +13,7 @@ define(function (require) {
           Info                = require('core/models/info'),
           Config              = require('root/config'),
           Utils               = require('core/app-utils'),
-          Filter              = require('core/lib/filter'),
+          Hooks               = require('core/lib/hooks'),
           sha256              = require('core/lib/sha256');
       
 	  var app = {};
@@ -61,57 +61,6 @@ define(function (require) {
 	  };
 	  
 	  //--------------------------------------------------------------------------
-	  //App initializer: logic to do treatments after initializers are done.
-	  var initializers = [];
-	  var after_initializers = [];
-	  var wait_events = [];
-	  
-	  app.addInitializer = function(callback,wait){
-	    var initializer = {
-	      obj: this,
-	      callback: callback,
-	      wait: (wait !== undefined) && wait
-	    }
-	    initializers.push(initializer);
-	  };
-	  
-	  app.addAfterInitializers = function(callback){
-		    var after_initializers_callback = {
-		      obj: this,
-		      callback: callback,
-		    }
-		    after_initializers.push(after_initializers_callback);
-	  };
-	 
-	  app.initialize = function(){
-		  
-		  _.each(initializers, function(initializer,index){
-			  if( initializer.wait ){
-				  wait_events.push(index);
-			  }
-		  });
-		  
-		  _.each(initializers, function(initializer,index){
-			  if( initializer.wait ){
-				  initializer.callback.call(initializer.obj,function(){
-					  var wait_events_index = wait_events.indexOf(index);
-					  if( wait_events_index > -1 ){
-						  wait_events.splice(wait_events_index, 1);
-					  }
-					  if( wait_events.length <= 0 ){
-						  _.each(after_initializers, function(after_initializers_callback){
-							  after_initializers_callback.callback.call(after_initializers_callback.obj);
-						  });
-					  }
-				  });
-			  }else{
-				  initializer.callback.call(initializer.obj);
-			  }
-		  });
-		  
-	  };
-	  
-	  //--------------------------------------------------------------------------
 	  //App Backbone router :
 	  app.router = null;
 	  
@@ -124,6 +73,7 @@ define(function (require) {
 	  //--------------------------------------------------------------------------
 	  //History :
 	  var history_stack = [];
+	  var previous_page_memory = {};
 	  
 	  var history_push = function (page_type,component_id,item_id,fragment,data){
 		  history_stack.push({	page_type:page_type,
@@ -141,6 +91,8 @@ define(function (require) {
 		  var current_page = app.getCurrentPageData();
 		  var previous_page = app.getPreviousPageData();
 		  var current_fragment = Backbone.history.fragment;
+		  
+		  previous_page_memory = current_page;
 		  
 		  if( current_page.page_type != page_type || current_page.component_id != component_id 
 			  || current_page.item_id != item_id || current_page.fragment != current_fragment ){
@@ -207,6 +159,10 @@ define(function (require) {
 		  return previous_page;
 	  };
 	  
+	  app.getPreviousPageMemoryData = function(){
+		  return previous_page_memory;
+	  };
+	  
 	  app.getPreviousPageLink = function(){
 		  var previous_page_link = '';
 		  var previous_page = app.getPreviousPageData();
@@ -248,7 +204,7 @@ define(function (require) {
 	    	  token = window.btoa(hash);
 		  }
 		  
-		  token = Filter.applyFilter('get-token',token,[key,web_service]);
+		  token = Hooks.applyFilter('get-token',token,[key,web_service]);
 		  
 		  if( token.length ){
 			  token = '/'+ token;
@@ -280,6 +236,7 @@ define(function (require) {
 	    	    	    			 var fetch = function(_items,_key){
 	    	    	    				 return _items.fetch({'success': function(fetched_items, response_items, options_items){
     	    	    	    				app.globals[_key] = fetched_items;
+    	    	    	    				//Backbone's fetch returns jQuery ajax deferred object > works with $.when 
     	    	    					 }}); 
 	    	    	    			 };
 	    	    	    			 

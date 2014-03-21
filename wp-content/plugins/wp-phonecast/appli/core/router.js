@@ -43,9 +43,7 @@ define(function (require) {
 		        					items.add(global.get(post_id));
 		            	  		});
 		        				require(["core/views/archive"],function(ArchiveView){
-		        					RegionManager.leave();
-		        					App.addToHistory('list',component_id,'',data);
-		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}));
+		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}),'list',component_id,'',data);
 		        				});
 	        				});
 	        				break;
@@ -55,18 +53,14 @@ define(function (require) {
 	        				if( global ){
 	        					var page = global.get(data.id);
 	        					if( page ){
-			        				App.addToHistory('page',component_id,data.id,data);
 			        				require(["core/views/single"],function(SingleView){
-			        					RegionManager.leave();
-			        					RegionManager.show(new SingleView({post:page}));
+			        					RegionManager.show(new SingleView({post:page}),'page',component_id,data.id,data);
 			        				});
 	        					}
 	        				}
 	        				break;
 	        			/*case 'navigation':
-	        			    RegionManager.leave();
-	        				App.addToHistory('navigation',component_id,'',data);
-	        				RegionManager.show(RegionManager.getMenuView());
+	        				RegionManager.show(RegionManager.getMenuView(),'navigation',component_id,'',data);
 	        				break;*/
 	        		}
         		}else{
@@ -84,9 +78,7 @@ define(function (require) {
 	        	if( global ){
 		        	var post = global.get(post_id);
 		        	if( post ){
-		        		RegionManager.leave(App.getCurrentPageData());
-		        		App.addToHistory('single','',post_id,{post:post.toJSON()});
-		        		RegionManager.show(new SingleView({post:post}));
+		        		RegionManager.show(new SingleView({post:post}),'single','',post_id,{post:post.toJSON()});
 		        	}else{
 	        			App.router.default_route();
 	        		}
@@ -105,9 +97,7 @@ define(function (require) {
 	        			//Check if we are still on the right post :
 	        			var current_page = App.getCurrentPageData();
 	        			if( current_page.page_type == 'single' && current_page.item_id == post_id ){
-	        				RegionManager.leave(current_page);
-	        				App.addToHistory('comments','',post_id);
-		        			RegionManager.show(new CommentsView({comments:comments,post:post}));
+		        			RegionManager.show(new CommentsView({comments:comments,post:post}),'comments','',post_id);
 	        			}
 	        			RegionManager.stopWaiting();
 		        	},
@@ -123,10 +113,7 @@ define(function (require) {
         	require(["core/app","core/views/info"],function(App,InfoView){
         		var current_info = App.getCurrentInfo();
         		if( current_info !== null ){
-	        		var current_page = App.getCurrentPageData();
-	        		RegionManager.leave(current_page);
-	        		App.addToHistory('info','','',current_info);
-	        		RegionManager.show(new InfoView({info:current_info}));
+	        		RegionManager.show(new InfoView({info:current_info}),'info','','',current_info);
         		}
         	});
         }

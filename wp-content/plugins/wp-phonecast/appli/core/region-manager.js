@@ -6,6 +6,7 @@ define(function (require) {
 		_                   = require('underscore'),
 		Backbone            = require('backbone'),
 		App            		= require('core/app'),
+		Hooks               = require('core/lib/hooks'),
 		Utils               = require('core/app-utils');
       
 	Backbone.View.prototype.close = function(){
@@ -171,19 +172,41 @@ define(function (require) {
 	    			Utils.log('Open view',view);
 	    		}
 				view.render();
-				$(el).empty().append(view.el);
-	     	    if(view.onShow) {
+				
+				var $el = $(el);
+				
+				var custom_rendering = Hooks.applyFilter('custom-page-rendering',false,[App.getCurrentPageData(),App.getPreviousPageData()]);
+				if( custom_rendering ){
+					Hooks.doAction(
+						'page-transition',
+						[$el,$('div:first-child',$el),$(view.el),App.getCurrentPageData(),App.getPreviousPageMemoryData()]
+					).done(function(){
+						 renderSubRegions();
+						 vent.trigger('page:showed',App.getCurrentPageData(),currentView);
+					}).fail(function(){
+						 renderSubRegions();
+						 vent.trigger('page:showed:failed',App.getCurrentPageData(),currentView);
+					});
+				}else{
+					$el.empty().append(view.el);
+					renderSubRegions();
+					vent.trigger('page:showed',App.getCurrentPageData(),currentView);
+				}
+				
+				if(view.onShow) {
 	     	        view.onShow();
 	     	   	}
 	    	}else{
 	    		Utils.log('Re-open existing static view',view);
 	    		$(el).empty().append(view.el);
+	    		renderSubRegions();
+				vent.trigger('page:showed',App.getCurrentPageData(),currentView);
 	    	}
 	    	
 	    };
 	    
-	    region.show = function(view,force_no_waiting) {
-	    		
+	    var showView = function(view,force_no_waiting){
+	    	
 	    	var no_waiting = force_no_waiting != undefined && force_no_waiting == true;
 
 	    	if( !view.isStatic || !$(view.el).html().length ){
@@ -211,28 +234,37 @@ define(function (require) {
 	    			region.showSimple(view);
 	    		}
 	    	}
+	    };
+	    
+	    var leave = function() {
+	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
+	    };
+	    
+	    region.show = function(view,page_type,component_id,item_id,data,force_flush,force_no_waiting) {
 	    	
+	    	leave();
+	    	
+			App.addToHistory(page_type,component_id,item_id,data,force_flush);
+			
+	    	showView(view,force_no_waiting);
 	    };
 	    
 	    region.showSimple = function(view) {
 			
+	    	var custom_rendering = Hooks.applyFilter('custom-page-rendering',false,[App.getCurrentPageData(),App.getPreviousPageData()]);
+	    	
 	    	if( currentView ){
-	    		closeView(currentView);
+	    		if( !custom_rendering ){ //Custom rendering must handle views closing by itself
+	    			closeView(currentView);
+	    		}
 	    	}
+	    	
 	    	currentView = view;
 		    openView(currentView);
-		    
-		    renderSubRegions();
-		    
-		    vent.trigger('page:showed',App.getCurrentPageData(),currentView);
 	    };
 	    
 	    region.getCurrentView = function(){
 	    	return currentView;
-	    };
-	    
-	    region.leave = function() {
-	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
 	    };
 	    
 	    region.startWaiting = function(){

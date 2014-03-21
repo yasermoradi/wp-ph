@@ -12,7 +12,7 @@ define(function (require,exports) {
           Utils               = require('core/app-utils'),
           Config              = require('root/config'),
           App                 = require('core/app'),
-          Filter              = require('core/lib/filter'),
+          Hooks               = require('core/lib/hooks'),
           TemplateTags        = require('core/theme-tpl-tags');
           
       var themeApp = {};
@@ -84,10 +84,14 @@ define(function (require,exports) {
 
 	  
 	  /************************************************
-	   * Filters management
+	   * Filters and Actions management
 	   */
 	  themeApp.filter = function (filter,callback){
-		  Filter.addFilter(filter,callback);
+		  Hooks.addFilter(filter,callback);
+	  }
+	  
+	  themeApp.action = function (action,callback){
+		  Hooks.addAction(action,callback);
 	  }
 	  
 	  
@@ -297,6 +301,66 @@ define(function (require,exports) {
 		  //TODO : handle deactivation!
 	  };
       
+	  
+	  /************************************************
+	   * Page transitions
+	   */
+	  
+	  themeApp.getTransitionDirection = function(current_page,previous_page){
+		  var transition = 'replace';
+		  
+		  if( current_page.page_type == 'list' ){
+			  if( previous_page.page_type == 'single' ){
+				  transition = 'right';
+			  }else{
+				  transition = 'replace';
+			  }
+		  }else if( current_page.page_type == 'single' ){
+			  if( previous_page.page_type == 'list' ){
+				  transition = 'left';
+			  }else if( previous_page.page_type == 'comments' ){
+				  transition = 'right';
+			  }else{
+				  transition = 'replace';
+			  }
+		  }else if( current_page.page_type == 'comments' ){
+			  transition = 'left';
+		  }else{
+			  transition = 'replace';
+		  }
+		  
+		  return transition;
+	  };
+	  
+	  themeApp.setAutoPageTransitions = function(transition_replace,transition_left,transition_right){
+
+		  themeApp.filter('custom-page-rendering',function(){
+			  return true;
+		  });
+
+		  themeApp.action('page-transition',function($deferred,$wrapper,$current,$next,current_page,previous_page){
+
+			  var direction = themeApp.getTransitionDirection(current_page,previous_page);
+
+			  switch(direction){
+				  case 'left':
+					  transition_left($wrapper,$current,$next,$deferred);
+					  break;
+				  case 'right':
+					  transition_right($wrapper,$current,$next,$deferred);
+					  break;
+				  case 'replace':
+					  transition_replace($wrapper,$current,$next,$deferred);
+					  break;
+				  default:
+					  transition_replace($wrapper,$current,$next,$deferred);
+				  	  break;
+			  };
+
+		  });
+		  
+	  };
+	  
 	  //Use exports so that theme-tpl-tags and theme-app (which depend on each other, creating
 	  //a circular dependency for requirejs) can both be required at the same time 
 	  //(in theme functions.js for example) : 

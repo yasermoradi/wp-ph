@@ -10,6 +10,8 @@ define(function (require) {
 
     return Backbone.View.extend({
     	
+    	className: "app-page",
+    	
     	initialize : function(args) {
             
     		this.template = _.template(Tpl);

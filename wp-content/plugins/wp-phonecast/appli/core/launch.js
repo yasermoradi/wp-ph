@@ -37,8 +37,6 @@ require(['root/config'],function(Config){
 				  
 				RegionManager.buildHead(function(){
 					
-					App.initialize();
-					  
 					RegionManager.buildLayout(function(){
 						
 						RegionManager.buildHeader(function(){
