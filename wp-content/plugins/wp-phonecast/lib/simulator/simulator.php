@@ -24,6 +24,7 @@ class WppcSimulator{
 				$trash_mem = $actions['trash'];
 				unset($actions['trash']);
 				$actions['wppc-simulate-app'] = '<a href="'. self::get_simulator_url($post->ID) .'">'. __('View in simulator') .'</a>';
+				$actions['wppc-view-app-in-browser'] = '<a href="'. WppcBuild::get_appli_index_url($post->ID) .'">'. __('View in browser') .'</a>';
 				$actions['trash'] = $trash_mem;
 			}
 		}
