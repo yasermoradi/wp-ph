@@ -12,9 +12,7 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/transitions','
 	/*
 	To handle page transitions manually :
 	 
-	App.filter('custom-page-rendering',function(){
-		return true;
-	});
+	App.setParam('custom-page-rendering', true);
 	
 	App.action('page-transition',function($deferred,$wrapper,$current,$next,current_page,previous_page){
 		
@@ -120,6 +118,14 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/transitions','
 		}else{
 			scrollTop();
 		}
+	});
+	
+	App.on('waiting:start',function(){
+		$('#waiting').show();
+	});
+	
+	App.on('waiting:stop',function(){
+		$('#waiting').hide();
 	});
 	
 	/*

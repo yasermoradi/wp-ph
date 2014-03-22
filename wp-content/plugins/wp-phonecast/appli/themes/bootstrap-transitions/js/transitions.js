@@ -7,7 +7,7 @@ define(function (require) {
       var transitions = {};
       
       var config = {
-    	delay:300	  
+    	delay:2000	  
       };
 
       transitions.replace = function($wrapper,$current,$next,$deferred){

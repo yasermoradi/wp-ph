@@ -33,12 +33,10 @@ require(['root/config'],function(Config){
 	    
 			var launch = function() { 
 		  
-				RegionManager.startWaiting();
-				  
 				RegionManager.buildHead(function(){
 					
 					RegionManager.buildLayout(function(){
-						
+
 						RegionManager.buildHeader(function(){
 							
 							App.router = new Router();		 
@@ -57,14 +55,13 @@ require(['root/config'],function(Config){
 														ThemeApp.refresh();
 													});
 												  
-													RegionManager.stopWaiting();
 													PhoneGap.hideSplashScreen();
 												});
 											},
 											function(){
 												Backbone.history.start();
 												Utils.log("launch.js error : App could not synchronize with website.");
-												RegionManager.stopWaiting();
+												
 												PhoneGap.hideSplashScreen();
 												
 												App.alertNoContent();

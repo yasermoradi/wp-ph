@@ -18,7 +18,12 @@ define(function (require) {
         },
         
         render : function() {
-        	var renderedContent = this.template({ title : Config.app_title, header : '<div id="app-header"></div>', menu : '<div id="app-menu"></div>', content : '<div id="app-container"></div>' });
+        	var renderedContent = this.template({ 
+        		title : Config.app_title, 
+        		header : '<div id="app-header"></div>', 
+        		menu : '<div id="app-menu"></div>', 
+        		content : '<div id="app-content-wrapper"></div>' 
+        	});
             $(this.el).html(renderedContent); 
             return this;
         },

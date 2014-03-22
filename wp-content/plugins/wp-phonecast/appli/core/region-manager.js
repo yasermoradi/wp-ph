@@ -32,7 +32,7 @@ define(function (require) {
 		var elHeader = "#app-header";
 		
 		var currentView = null;
-	    var el = "#app-container";
+	    var el = "#app-content-wrapper";
 	    
 	    var elMenu = "#app-menu";
 	    var menuView= null; 
@@ -150,7 +150,7 @@ define(function (require) {
 	    var closeView = function (view) {
 	        if( view ){
 	        	if( view.isStatic ){
-	        		var static_pages_wrapper = $('#static-pages');
+	        		var static_pages_wrapper = $('#app-static-pages');
 	        		if( !static_pages_wrapper.find('[data-viewid='+ view.cid +']').length ){
 	        			$(view.el).attr('data-viewid',currentView.cid);
 	        			static_pages_wrapper.append(view.el);
@@ -175,7 +175,9 @@ define(function (require) {
 				
 				var $el = $(el);
 				
-				var custom_rendering = Hooks.applyFilter('custom-page-rendering',false,[App.getCurrentPageData(),App.getPreviousPageData()]);
+				vent.trigger('page:before-transition',App.getCurrentPageData(),currentView);
+				
+				var custom_rendering = App.getParam('custom-page-rendering');
 				if( custom_rendering ){
 					Hooks.doAction(
 						'page-transition',
@@ -197,6 +199,7 @@ define(function (require) {
 	     	        view.onShow();
 	     	   	}
 	    	}else{
+	    		//TODO : we should apply custom rendering logic here too...
 	    		Utils.log('Re-open existing static view',view);
 	    		$(el).empty().append(view.el);
 	    		renderSubRegions();
@@ -217,13 +220,13 @@ define(function (require) {
 		    	
 		    	if( view.loadViewData ){
 			    	view.loadViewData(function(){
-			    		region.showSimple(view);
+			    		showSimple(view);
 			    		if( !no_waiting ){
 			    			region.stopWaiting();
 			    		}
 			    	});
 		    	}else{
-		    		region.showSimple(view);
+		    		showSimple(view);
 		    		if( !no_waiting ){
 		    			region.stopWaiting();
 		    		}
@@ -231,30 +234,17 @@ define(function (require) {
 		    	
 	    	}else{
 	    		if( !no_waiting ){
-	    			region.showSimple(view);
+	    			showSimple(view);
 	    		}
 	    	}
 	    };
 	    
-	    var leave = function() {
-	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
-	    };
-	    
-	    region.show = function(view,page_type,component_id,item_id,data,force_flush,force_no_waiting) {
-	    	
-	    	leave();
-	    	
-			App.addToHistory(page_type,component_id,item_id,data,force_flush);
+	    var showSimple = function(view) {
 			
-	    	showView(view,force_no_waiting);
-	    };
-	    
-	    region.showSimple = function(view) {
-			
-	    	var custom_rendering = Hooks.applyFilter('custom-page-rendering',false,[App.getCurrentPageData(),App.getPreviousPageData()]);
+	    	var custom_rendering = App.getParam('custom-page-rendering');
 	    	
 	    	if( currentView ){
-	    		if( !custom_rendering ){ //Custom rendering must handle views closing by itself
+	    		if( !custom_rendering ){ //Custom rendering must handle views closing by itself (on page:leave)
 	    			closeView(currentView);
 	    		}
 	    	}
@@ -263,16 +253,25 @@ define(function (require) {
 		    openView(currentView);
 	    };
 	    
+	    region.show = function(view,page_type,component_id,item_id,data,force_flush,force_no_waiting) {
+	    	
+	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
+	    	
+			App.addToHistory(page_type,component_id,item_id,data,force_flush);
+			
+	    	showView(view,force_no_waiting);
+	    };
+	    
 	    region.getCurrentView = function(){
 	    	return currentView;
 	    };
 	    
 	    region.startWaiting = function(){
-	    	$('#waiting').show();
+	    	vent.trigger('waiting:start',App.getCurrentPageData(),currentView);
 	    };
 	    
 	    region.stopWaiting = function(){
-	    	$('#waiting').hide();
+	    	vent.trigger('waiting:stop',App.getCurrentPageData(),currentView);
 	    };
 	    
 	    return region;

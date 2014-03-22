@@ -61,6 +61,27 @@ define(function (require) {
 	  };
 	  
 	  //--------------------------------------------------------------------------
+	  //App params :
+	  //Params that can be changed by themes
+	  var params = {
+		  'custom-page-rendering' : false
+	  };
+	  
+	  app.getParam = function(param){
+		  var value = null;
+		  if( params.hasOwnProperty(param) ){
+    		  value = params[param];
+    	  }
+    	  return value;
+	  };
+	  
+	  app.setParam = function(param,value){
+		  if( params.hasOwnProperty(param) ){
+			  params[param] = value;
+		  }
+	  };
+	  
+	  //--------------------------------------------------------------------------
 	  //App Backbone router :
 	  app.router = null;
 	  

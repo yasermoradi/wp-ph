@@ -25,7 +25,15 @@ define(function (require,exports) {
       //Event aggregator
 	  var vent = _.extend({}, Backbone.Events);
 	  themeApp.on = function(event,callback){
-		  if( _.contains(['page:leave','page:showed','menu:refresh','header:render'], event) ){
+		  if( _.contains(['page:leave',
+		                  'page:showed',
+		                  'page:before-transition',
+		                  'menu:refresh',
+		                  'header:render',
+		                  'waiting:start',
+		                  'waiting:stop'
+		                  ], 
+		                  event) ){
 			  //Proxy RegionManager events :
 			  RegionManager.on(event,callback);
 		  }else{
@@ -38,7 +46,9 @@ define(function (require,exports) {
 		  
 		  var theme_event_data = format_theme_event_data(event,data);
 		  
-		  if( theme_event_data.type == 'error' || theme_event_data.type == 'info' ){
+		  if( theme_event_data.type == 'error' 
+			  || theme_event_data.type == 'info' 
+			){
 			  //2 ways of binding to error and info events :
 			  vent.trigger(event,theme_event_data); //Ex: bind directly to 'info:no-content'
 			  vent.trigger(theme_event_data.type,theme_event_data); //Ex: bind to general 'info', then filter with if( info.event == 'no-content' )
@@ -84,7 +94,7 @@ define(function (require,exports) {
 
 	  
 	  /************************************************
-	   * Filters and Actions management
+	   * Filters, actions and Params management
 	   */
 	  themeApp.filter = function (filter,callback){
 		  Hooks.addFilter(filter,callback);
@@ -93,6 +103,10 @@ define(function (require,exports) {
 	  themeApp.action = function (action,callback){
 		  Hooks.addAction(action,callback);
 	  }
+	  
+	  themeApp.setParam = function(param,value){
+		  App.setParam(param,value);
+	  };
 	  
 	  
 	  /************************************************
@@ -334,9 +348,7 @@ define(function (require,exports) {
 	  
 	  themeApp.setAutoPageTransitions = function(transition_replace,transition_left,transition_right){
 
-		  themeApp.filter('custom-page-rendering',function(){
-			  return true;
-		  });
+		  themeApp.setParam('custom-page-rendering', true);
 
 		  themeApp.action('page-transition',function($deferred,$wrapper,$current,$next,current_page,previous_page){
 
