@@ -72,23 +72,27 @@ define(function (require) {
 	    };
 	    
 	    region.buildHeader = function(cb){
-	    	if( headerView === null ){
-	    		require(['core/views/header'],
-	    				function(HeaderView){
-				    		headerView = new HeaderView({
-				    			el:elHeader,
-				    			do_if_template_exists:function(view){
-					    			if( layoutView.containsHeader() ){
-					    				view.render();
-					    			}
-				    				cb();
-					    		},
-					    		do_if_no_template:function(){
-					    			cb();
-					    		}
-					    	});
-	    				}
-	    		);
+	    	if( layoutView.containsHeader() ){
+		    	if( headerView === null ){
+		    		require(['core/views/header'],
+		    				function(HeaderView){
+					    		headerView = new HeaderView({
+					    			el:elHeader,
+					    			do_if_template_exists:function(view){
+						    			if( layoutView.containsHeader() ){
+						    				view.render();
+						    			}
+					    				cb();
+						    		},
+						    		do_if_no_template:function(){
+						    			cb();
+						    		}
+						    	});
+		    				}
+		    		);
+		    	}else{
+		    		cb();
+		    	}
 	    	}else{
 	    		cb();
 	    	}
@@ -137,7 +141,7 @@ define(function (require) {
 	    };
 	    
 	    var renderSubRegions = function(){
-	    	if( headerView.templateExists() && layoutView.containsHeader() ){
+	    	if( headerView && headerView.templateExists() && layoutView.containsHeader() ){
 		    	headerView.render();
 		    	Utils.log('Render header',headerView);
 		    	if( headerView.containsMenu() ){
