@@ -30,42 +30,25 @@ define(function (require) {
         
         component: function (component_id) {
         	require(["core/app"],function(App){
-        		var component = App.components.get(component_id);
+        		
+        		var component = App.getComponentData(component_id);
         		if( component ){
-        			var component_type = component.get('type');
-	        		switch(component_type){
-	        			case 'posts-list':
-	        				var data = component.get('data');
-	        				require(["core/models/items"],function(Items){
-		        				var items = new Items.ItemsSlice();
-		        				var global = App.globals[component.get('global')];
-		        				_.each(data.ids,function(post_id, index){
-		        					items.add(global.get(post_id));
-		            	  		});
-		        				require(["core/views/archive"],function(ArchiveView){
-		        					RegionManager.show(new ArchiveView({posts:items,title: component.get('label'), total: data.total}),'list',component_id,'',data);
-		        				});
+        			switch( component.type ){
+        				case 'posts-list':
+        					require(["core/views/archive"],function(ArchiveView){
+	        					RegionManager.show(new ArchiveView(component.view_data),'list',component_id,'',component.data);
 	        				});
-	        				break;
-	        			case 'page':
-	        				var data = component.get('data');
-	        				var global = App.globals[component.get('global')];
-	        				if( global ){
-	        					var page = global.get(data.id);
-	        					if( page ){
-			        				require(["core/views/single"],function(SingleView){
-			        					RegionManager.show(new SingleView({post:page}),'page',component_id,data.id,data);
-			        				});
-	        					}
-	        				}
-	        				break;
-	        			/*case 'navigation':
-	        				RegionManager.show(RegionManager.getMenuView(),'navigation',component_id,'',data);
-	        				break;*/
-	        		}
+        					break;
+        				case 'page':
+        					require(["core/views/single"],function(SingleView){
+	        					RegionManager.show(new SingleView(component.view_data),'page',component_id,component.data.id,component.data);
+	        				});
+        					break;
+        			}
         		}else{
         			App.router.default_route();
         		}
+        		
         	});
         },
         

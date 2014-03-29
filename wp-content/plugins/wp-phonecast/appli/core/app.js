@@ -503,6 +503,46 @@ define(function (require) {
     	  vent.trigger('info:no-content');
       };
       
+      app.getComponentData = function(component_id){
+    	  var component_data = null;
+    	  
+    	  var component = app.components.get(component_id);
+    	  if( component ){
+    		  var component_type = component.get('type');
+    		  switch(component_type){
+	    		  case 'posts-list':
+	    			  var data = component.get('data');
+	    			  var items = new Items.ItemsSlice();
+    				  var global = app.globals[component.get('global')];
+    				  _.each(data.ids,function(post_id, index){
+    					  items.add(global.get(post_id));
+    				  });
+    				  component_data = {
+    						  type: component_type,
+    						  view_data: {posts:items,title: component.get('label'), total: data.total},
+    						  data: data
+    				  };
+	    			  break;
+	    		  case 'page':
+	    			  var data = component.get('data');
+	    			  var global = app.globals[component.get('global')];
+	    			  if( global ){
+	    				  var page = global.get(data.id);
+	    				  if( page ){
+	    					  component_data = {
+	    							  type: component_type,
+	        						  view_data: {post:page},
+	        						  data: data
+	        				  };
+	    				  }
+	    			  }
+	    			  break;
+    		  }
+    	  };
+
+    	  return component_data;
+      };
+      
 	  return app;
 	  
 });
