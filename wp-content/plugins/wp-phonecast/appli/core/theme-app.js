@@ -110,29 +110,6 @@ define(function (require,exports) {
 	  
 	  
 	  /************************************************
-	   * App infos management
-	   */
-	  
-	  themeApp.showInfoPage = function(content,title,type,data){
-		  if( title == undefined ){
-			  title = '';
-		  }
-		  if( type == undefined ){
-			  type = 'warning';
-		  }
-		  if( data == undefined ){
-			  data = {};
-		  }
-		  var info = {
-				  type: type,
-				  title: title,
-				  content: content,
-				  data: data
-		  };
-		  App.showInfoPage(info);
-	  };
-	  
-	  /************************************************
 	   * App contents refresh
 	   */
 
@@ -371,6 +348,17 @@ define(function (require,exports) {
 
 		  });
 		  
+	  };
+	  
+	  /************************************************
+	   * App infos management
+	   */
+	  
+	  themeApp.showCustomPage = function(template,data){
+		  if( template == undefined ){
+			  template = 'custom';
+		  }
+		  App.showCustomPage(template,data);
 	  };
 	  
 	  //Use exports so that theme-tpl-tags and theme-app (which depend on each other, creating

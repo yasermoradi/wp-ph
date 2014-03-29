@@ -91,13 +91,12 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 		}
 	});
 	
-	/*
-	//Example of how to display your own, customized info page :
-	$('#container').on('click','#custom-info',function(e){
+	//Example of how to display your own customized page :
+	$('#container').on('click','#custom-page',function(e){
 		e.preventDefault();
-		App.showInfoPage("This is a custom info message!","Custom info"); 
+		//Render custom page using any custom template that you created in your theme (here, a template called "info.html") : 
+		App.showCustomPage('info',{title:"Custom page example",content:"This is a custom page created dynamically in functions.js :-)"}); 
 	});
-	*/
 	
 	function closeMenu(){
 		var navbar_toggle_button = $(".navbar-toggle").eq(0);

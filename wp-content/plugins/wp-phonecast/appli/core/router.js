@@ -17,7 +17,7 @@ define(function (require) {
             "page-:id" : "page",
             "comments-:post_id" : "comments",
             "component-:id" : "component",
-            "info" : "info"
+            "custom-page" : "custom_page"
         },
  
         setDefaultRoute : function(_default_route){
@@ -109,11 +109,11 @@ define(function (require) {
         	});
         },
         
-        info: function(){
-        	require(["core/app","core/views/info"],function(App,InfoView){
-        		var current_info = App.getCurrentInfo();
-        		if( current_info !== null ){
-	        		RegionManager.show(new InfoView({info:current_info}),'info','','',current_info);
+        custom_page: function(){
+        	require(["core/app"],function(App){
+        		var current_custom_page_view = App.getCurrentCustomPageView();
+        		if( current_custom_page_view !== null ){
+	        		RegionManager.show(current_custom_page_view,'custom-page','','',current_custom_page_view);
         		}
         	});
         }

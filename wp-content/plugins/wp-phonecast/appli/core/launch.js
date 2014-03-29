@@ -84,7 +84,6 @@ require(['root/config'],function(Config){
 			};
 	  
 			if( PhoneGap.isLoaded() ){
-				// Listen for the deviceready event
 				document.addEventListener('deviceready', launch, false);
 			}else{
 				$(document).ready(launch);

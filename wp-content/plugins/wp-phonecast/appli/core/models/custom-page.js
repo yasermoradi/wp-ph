@@ -4,15 +4,13 @@ define(function (require) {
 
     var Backbone    = require('backbone');
 
-    var Info = Backbone.Model.extend({
+    var CustomPage = Backbone.Model.extend({
     	defaults : {
     		id: '',
-    		type: '',
-    		title: '',
-    		content: '',
+    		template: 'custom',
     		data: {}
         }
     });
 
-    return Info;
+    return CustomPage;
 });

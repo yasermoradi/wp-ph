@@ -10,7 +10,7 @@ define(function (require) {
           Navigation          = require('core/models/navigation'),
           Items               = require('core/models/items'),
           Comments            = require('core/models/comments'),
-          Info                = require('core/models/info'),
+          CustomPage          = require('core/models/custom-page'),
           Config              = require('root/config'),
           Utils               = require('core/app-utils'),
           Hooks               = require('core/lib/hooks'),
@@ -37,27 +37,46 @@ define(function (require) {
 	  };
 	  
 	  //--------------------------------------------------------------------------
-	  //Infos handling
+	  //Custom pages handling
 	  
-	  var current_info = null;
+	  var current_custom_page_view = null;
 	  
-	  var set_current_info = function(info_data){
-		  current_info = new Info(info_data);
+	  var set_current_custom_page_view = function(template,data,cb_ok,cb_error){
+		  var custom_page = new CustomPage({template: template, data: data});
+		  require(["core/views/custom-page"],function(CustomPageView){
+			  var custom_page_view = new CustomPageView(custom_page);
+			  custom_page_view.checkTemplate(
+					  function(){
+						  current_custom_page_view = custom_page_view;
+						  cb_ok();
+					  },
+					  function(){
+						  current_custom_page_view = null;
+						  cb_error();
+					  }  
+			  );
+		  });
 	  };
 	  
-	  app.getCurrentInfo = function(){
-		  return current_info;
+	  app.getCurrentCustomPageView = function(){
+		  return current_custom_page_view;
 	  };
 	  
 	  /**
-	   * Displays an info page using the info.html template.
-	   * @param info_data see models/info.js for error fields
+	   * Displays a custom page using the given template.
+	   * @param data see models/custom-page.js for data fields
 	   */
-	  app.showInfoPage = function(info_data){
-		  if( info_data != undefined ){
-			  set_current_info(info_data);
-		  }
-		  app.router.navigate('info',{trigger: true});
+	  app.showCustomPage = function(template,data){
+		  set_current_custom_page_view(
+				  template,
+				  data,
+				  function(){
+					  app.router.navigate('custom-page',{trigger: true});
+				  },
+				  function(){
+					  Utils.log('App could not navigate to custom page with template "'+ template +'"');
+				  }
+		  );
 	  };
 	  
 	  //--------------------------------------------------------------------------
