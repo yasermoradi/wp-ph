@@ -137,7 +137,7 @@ define(function (require) {
 
 	<gap:platform name="<?php echo $app_platform ?>" />
 		
-	<!-- Add Icon and/or Splash screen here -->
+	<!-- Add Icon, Splash screen and any PhoneGap plugin declaration here -->
 	
 </widget>
 <?php
