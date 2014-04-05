@@ -223,7 +223,7 @@ class WppcCache{
 	private static function get_not_changed_answer($cached_last_update){
 		$not_changed_answer = array('result' => (object)array('status'=>2,'message'=>''), 'last-update' => $cached_last_update );
 		if( function_exists('apply_filters') ){ //We can pass here when Wordpress API is not loaded yet... 
-			$not_changed_answer = apply_filters('mlrws_not_changed_answer',$not_changed_answer,$cached_last_update);
+			$not_changed_answer = apply_filters('wppc_not_changed_answer',$not_changed_answer,$cached_last_update);
 		}
 		return json_encode((object)$not_changed_answer);
 	}

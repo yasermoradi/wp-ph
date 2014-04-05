@@ -64,7 +64,7 @@ class WppcComponentTypePage extends WppcComponentType{
 			'nb_comments' => (int)get_comments_number()
 		);
 		
-		$post_data = apply_filters('wppc_posts_list_post_data',$post_data,$post);
+		$post_data = apply_filters('wppc_page_post_data',$post_data,$post);
 		
 		return (object)$post_data;
 	}

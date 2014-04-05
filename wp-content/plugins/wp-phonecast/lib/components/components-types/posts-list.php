@@ -49,6 +49,8 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			}
 		}
 		
+		$query_args = apply_filters('wppc_posts_list_query_args',$query_args,$options,$args,$query);
+		
 		$posts_query = new WP_Query($query_args);
 		
 		if( !empty($before_post_date) ){
