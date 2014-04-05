@@ -11,7 +11,7 @@ define(function (require) {
 	  };
 	  
 	  phonegap.hideSplashScreen = function(){
-		  if( phonegap.isLoaded && navigator.splashscreen !== undefined ){
+		  if( phonegap.isLoaded() && navigator.splashscreen !== undefined ){
 			  navigator.splashscreen.hide();
 		  }
 	  };
