@@ -113,3 +113,5 @@ class WppcComponentTypePage extends WppcComponentType{
 	}
 	
 }
+
+WppcComponentsTypes::register_component_type('page', array('label'=> __('Wordpress page')));

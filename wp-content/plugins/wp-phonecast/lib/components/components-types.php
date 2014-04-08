@@ -1,11 +1,5 @@
 <?php
 
-//TODO : require this dynamically
-require_once(dirname(__FILE__) .'/components-types/posts-list.php');
-require_once(dirname(__FILE__) .'/components-types/page.php');
-
-//TODO : see if we need this and if we do it this way... require_once(dirname(__FILE__) .'/components-types/navigation.php');
-
 abstract class WppcComponentType{
 
 	private $data = array('specific'=>array(),'globals'=>array());
@@ -43,25 +37,14 @@ abstract class WppcComponentType{
 
 class WppcComponentsTypes{
 	
-	//TODO : do this dynamically!
+	private static $component_types = array();
+	
+	public static function register_component_type($component_type_slug,$component_type_display_info){
+		self::$component_types[$component_type_slug] = $component_type_display_info;
+	}
+	
 	public static function get_available_components_types(){
-	
-		$available_components_types = array(
-				'posts-list' => array(
-						'label' => __('Posts list'),
-				),
-				'page' => array(
-						'label' => __('Wordpress page'),
-				),
-				/*'navigation' => array(
-						'label' => __('Navigation'),
-				),*/
-				/*'terms-list' => array(
-						'label' => __('Terms list'),
-				),*/
-		);
-	
-		return $available_components_types;
+		return self::$component_types;
 	}
 	
 	public static function get_component_data(WppcComponent $component,$globals,$args=array()){
@@ -129,3 +112,8 @@ class WppcComponentsTypes{
 		return class_exists($class) ? new $class : null;
 	}
 }
+
+//Include native component types :
+require_once(dirname(__FILE__) .'/components-types/posts-list.php');
+require_once(dirname(__FILE__) .'/components-types/page.php');
+require_once(dirname(__FILE__) .'/components-types/hooks.php');

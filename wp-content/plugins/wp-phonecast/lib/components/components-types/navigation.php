@@ -3,6 +3,7 @@
  * NOT USED FOR NOW
  * TODO : see if we need this and if we do it this way... 
  */
+/*
 class WppcComponentTypeNavigation extends WppcComponentType{
 	
 	protected function compute_data($options,$args=array()){
@@ -29,3 +30,6 @@ class WppcComponentTypeNavigation extends WppcComponentType{
 	}
 	
 }
+
+WppcComponentsTypes::register_component_type('navigation', array('label'=> __('Navigation')));
+*/
