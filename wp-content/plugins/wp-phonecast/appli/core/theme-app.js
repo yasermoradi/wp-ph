@@ -70,6 +70,7 @@ define(function (require,exports) {
 			  // - 'ajax'
 			  // - 'ws-data'
 			  // - 'not-found'
+			  // - 'wrong-data'
 			  
 			  if( data.type == 'ajax' ){
 				  theme_event_data.message = 'Remote connexion to website failed'; 
@@ -251,9 +252,11 @@ define(function (require,exports) {
 			  var component = App.components.get(current_page.component_id);
 	    	  if( component ){
 	    		  var component_data = component.get('data');
-	    		  var nb_left = component_data.total - component_data.ids.length;
-	    		  get_more_link_data.nb_left = nb_left;  
-	    		  get_more_link_data.display = nb_left > 0;  
+	    		  if( component_data.hasOwnProperty('ids') ){
+		    		  var nb_left = component_data.total - component_data.ids.length;
+		    		  get_more_link_data.nb_left = nb_left;  
+		    		  get_more_link_data.display = nb_left > 0;
+	    		  }
 	    	  }
 		  }
 		  

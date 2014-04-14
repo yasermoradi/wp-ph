@@ -127,7 +127,7 @@ define(function (require) {
 		    		menuView.render();
 		    		$(elMenu).empty().append(menuView.el);
 		    		vent.trigger('menu:refresh',App.getCurrentPageData(),menuView);
-		    		Utils.log('Render navigation',menuView,force_reload);
+		    		Utils.log('Render navigation',{menu_view:menuView,force_reload:force_reload});
 	    		}
 	    	}else{
 	    		if( $(elMenu).html().length ){
@@ -143,7 +143,7 @@ define(function (require) {
 	    var renderSubRegions = function(){
 	    	if( headerView && headerView.templateExists() && layoutView.containsHeader() ){
 		    	headerView.render();
-		    	Utils.log('Render header',headerView);
+		    	Utils.log('Render header',{header_view:headerView});
 		    	if( headerView.containsMenu() ){
 		    		showMenu(true);
 		    	}
@@ -171,9 +171,9 @@ define(function (require) {
 	    	
 	    	if( !view.isStatic || !$(view.el).html().length ){
 	    		if( view.isStatic != undefined && view.isStatic ){
-	    			Utils.log('Open static view',view);
+	    			Utils.log('Open static view',{page_data:App.getCurrentPageData(),view:view});
 	    		}else{
-	    			Utils.log('Open view',view);
+	    			Utils.log('Open view',{page_data:App.getCurrentPageData(),view:view});
 	    		}
 				view.render();
 				
@@ -204,7 +204,7 @@ define(function (require) {
 	     	   	}
 	    	}else{
 	    		//TODO : we should apply custom rendering logic here too...
-	    		Utils.log('Re-open existing static view',view);
+	    		Utils.log('Re-open existing static view',{view:view});
 	    		$(el).empty().append(view.el);
 	    		renderSubRegions();
 				vent.trigger('page:showed',App.getCurrentPageData(),currentView);
@@ -257,11 +257,10 @@ define(function (require) {
 		    openView(currentView);
 	    };
 	    
-	    region.show = function(view,page_type,component_id,item_id,data,force_flush,force_no_waiting) {
+	    region.show = function(view,force_flush,force_no_waiting) {
+	    	vent.trigger('page:leave',App.getCurrentPageData(),App.getQueriedPage(),currentView);
 	    	
-	    	vent.trigger('page:leave',App.getCurrentPageData(),currentView);
-	    	
-			App.addToHistory(page_type,component_id,item_id,data,force_flush);
+			App.addQueriedPageToHistory(force_flush);
 			
 	    	showView(view,force_no_waiting);
 	    };

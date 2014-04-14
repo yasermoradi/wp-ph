@@ -14,9 +14,6 @@ define(function (require) {
             type : "",
             data : "",
             global : ""
-        },
-        getLastItemId : function(){
-        	return _.last(this.get('data').ids);
         }
     });
 

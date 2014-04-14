@@ -39,27 +39,10 @@ define(function (require) {
 	  //--------------------------------------------------------------------------
 	  //Custom pages handling
 	  
-	  var current_custom_page_view = null;
+	  var current_custom_page = null;
 	  
-	  var set_current_custom_page_view = function(template,data,cb_ok,cb_error){
-		  var custom_page = new CustomPage({template: template, data: data});
-		  require(["core/views/custom-page"],function(CustomPageView){
-			  var custom_page_view = new CustomPageView(custom_page);
-			  custom_page_view.checkTemplate(
-					  function(){
-						  current_custom_page_view = custom_page_view;
-						  cb_ok();
-					  },
-					  function(){
-						  current_custom_page_view = null;
-						  cb_error();
-					  }  
-			  );
-		  });
-	  };
-	  
-	  app.getCurrentCustomPageView = function(){
-		  return current_custom_page_view;
+	  app.getCurrentCustomPage = function(){
+		  return current_custom_page;
 	  };
 	  
 	  /**
@@ -67,16 +50,8 @@ define(function (require) {
 	   * @param data see models/custom-page.js for data fields
 	   */
 	  app.showCustomPage = function(template,data){
-		  set_current_custom_page_view(
-				  template,
-				  data,
-				  function(){
-					  app.router.navigate('custom-page',{trigger: true});
-				  },
-				  function(){
-					  Utils.log('App could not navigate to custom page with template "'+ template +'"');
-				  }
-		  );
+		  current_custom_page = new CustomPage({template: template, data: data});
+		  app.router.navigate('custom-page',{trigger: true});
 	  };
 	  
 	  //--------------------------------------------------------------------------
@@ -113,61 +88,74 @@ define(function (require) {
 	  //--------------------------------------------------------------------------
 	  //History :
 	  var history_stack = [];
+	  var queried_page_data = {};
 	  var previous_page_memory = {};
 	  
-	  var history_push = function (page_type,component_id,item_id,fragment,data){
-		  history_stack.push({	page_type:page_type,
-				component_id:component_id,
-				item_id:item_id,
-				fragment:fragment,
-				data:(data != undefined) ? data : {}
-			 });
+	  var history_push = function(page_data){
+		  history_stack.push(page_data);
 	  };
-		
-	  app.addToHistory = function(page_type,component_id,item_id,data,force_flush){
+	  
+	  var formatPageData = function(page_data){
+		  return {	
+			  page_type:page_data.page_type,
+			  component_id:page_data.component_id,
+			  item_id:page_data.item_id,
+			  fragment:page_data.fragment,
+			  data:page_data.hasOwnProperty('data') ? page_data.data : {}
+		  };
+	  };
+	  
+	  app.setQueriedPage = function(page_data){
+		  queried_page_data = formatPageData(_.extend(page_data,{fragment: Backbone.history.fragment}));
+	  };
+	  
+	  app.getQueriedPage = function(page_data){
+		  return queried_page_data;
+	  };
+	  
+	  app.addQueriedPageToHistory = function(force_flush){
 		  
 		  var force_flush_history = force_flush != undefined && force_flush == true;
 		  
 		  var current_page = app.getCurrentPageData();
 		  var previous_page = app.getPreviousPageData();
-		  var current_fragment = Backbone.history.fragment;
 		  
 		  previous_page_memory = current_page;
 		  
-		  if( current_page.page_type != page_type || current_page.component_id != component_id 
-			  || current_page.item_id != item_id || current_page.fragment != current_fragment ){
+		  if( current_page.page_type != queried_page_data.page_type || current_page.component_id != queried_page_data.component_id 
+			  || current_page.item_id != queried_page_data.item_id || current_page.fragment != queried_page_data.current_fragment ){
 			  
 			  if( force_flush_history ){
 				  history_stack = [];
 			  }
 			  
-			  if( page_type == 'list' ){
+			  if( queried_page_data.page_type == 'list' ){
 				  history_stack = [];
-				  history_push(page_type,component_id,item_id,current_fragment,data);
-			  }else if( page_type == 'single' ){
+				  history_push(queried_page_data);
+			  }else if( queried_page_data.page_type == 'single' ){
 				  if( current_page.page_type == 'list' ){
-					  history_push(page_type,component_id,item_id,current_fragment,data);
+					  history_push(queried_page_data);
 				  }else if( current_page.page_type == 'comments' ){
-					  if( previous_page.page_type == 'single' && previous_page.item_id == item_id ){
+					  if( previous_page.page_type == 'single' && previous_page.item_id == queried_page_data.item_id ){
 						  history_stack.pop();
 					  }else{
 						  history_stack = [];
-						  history_push(page_type,component_id,item_id,current_fragment,data);
+						  history_push(queried_page_data);
 					  }
 				  }else{
 					  history_stack = [];
-					  history_push(page_type,component_id,item_id,current_fragment,data);
+					  history_push(queried_page_data);
 				  }
-			  }else if( page_type == 'page' ){
+			  }else if( queried_page_data.page_type == 'page' ){
 				  history_stack = [];
-				  history_push(page_type,component_id,item_id,current_fragment,data);
-			  }else if( page_type == 'comments' ){
+				  history_push(queried_page_data);
+			  }else if( queried_page_data.page_type == 'comments' ){
 				  //if( current_page.page_type == 'single' && current_page.item_id == item_id ){
-					  history_push(page_type,component_id,item_id,current_fragment,data);
+					  history_push(queried_page_data);
 				  //}
-			  }else if( page_type == 'info' ){
+			  }else if( queried_page_data.page_type == 'info' ){
 				  history_stack = [];
-				  history_push(page_type,component_id,item_id,current_fragment,data);
+				  history_push(queried_page_data);
 			  }
 			  
 		  }
@@ -261,12 +249,12 @@ define(function (require) {
 	    		 if( components.length == 0 || force ){
 	    			 syncWebService(cb_ok,cb_error);
 	    		 }else{
-	    			 Utils.log('Components retrieved from local storage.',components);
+	    			 Utils.log('Components retrieved from local storage.',{components:components});
 	    			 app.navigation.fetch({'success': function(navigation, response_nav, options_nav){
 	    	    		 if( navigation.length == 0 ){
 	    	    			 syncWebService(cb_ok,cb_error);
 	    	    		 }else{
-	    	    			 Utils.log('Navigation retrieved from local storage.',navigation);
+	    	    			 Utils.log('Navigation retrieved from local storage.',{navigation:navigation});
 	    	    			 globals_keys.fetch({'success': function(global_keys, response_global_keys, options_global_keys){
 	    	    	    		 if( global_keys.length == 0 ){
 	    	    	    			 syncWebService(cb_ok,cb_error);
@@ -291,7 +279,7 @@ define(function (require) {
 	    	    	    				 if( app.globals.length == 0 ){
 		    	    	    				 syncWebService(cb_ok,cb_error);
 		    	    	    			 }else{
-		    	    	    				 Utils.log('Global items retrieved from local storage.',app.globals);
+		    	    	    				 Utils.log('Global items retrieved from local storage.',{globals:app.globals});
 		    	    	    				 cb_ok();
 		    	    	    			 }
 	    	    	    		     });
@@ -346,7 +334,7 @@ define(function (require) {
 								  });
 								  globals_keys.saveAll();
 								  
-								  Utils.log('Components, navigation and globals retrieved from online.',app.components,app.navigation,app.globals);
+								  Utils.log('Components, navigation and globals retrieved from online.',{components:app.components,navigation:app.navigation,globals:app.globals});
 
 								  cb_ok();
 				  			  }else{
@@ -427,75 +415,79 @@ define(function (require) {
       app.getMoreOfComponent = function(component_id,cb_ok,cb_error){
     	  var component = app.components.get(component_id);
     	  if( component ){
-	    	  var token = getToken('component');
-	    	  var ws_url = token +'/component/'+ component_id;
-	    	  
-	    	  var last_item_id = component.getLastItemId();
-	    	  ws_url += '?before_item='+ last_item_id;
-	    	  
-	    	  $.ajax({
-	    		  type: 'GET',
-	    		  url: Config.wp_ws_url + ws_url,
-	    		  success: function(answer) {
-		    		  if( answer.result && answer.result.status == 1 ){
-		    			  if( answer.component.slug == component_id ){
-		    				  var global = answer.component.global;
-		    				  if( app.globals.hasOwnProperty(global) ){
-		    					  
-		    					  var component_data = component.get('data');
-		    					  
-		    					  var new_ids = _.difference(answer.component.data.ids,component_data.ids);
-		    					  
-		    					  component_data.ids = _.union(component_data.ids,answer.component.data.ids); //merge ids
-		    					  component.set('data',component_data);
-		    					  
-			    				  var current_items = app.globals[global];
-								  _.each(answer.globals[global],function(item, id){
-									  current_items.add(_.extend({id:id},item)); //auto merges if "id" already in items
-								  });
-								  
-		    					  var new_items = [];
-								  _.each(new_ids,function(item_id){
-									  new_items.push(current_items.get(item_id));
-			          	  		  });
-								  
-								  var nb_left = component_data.total - component_data.ids.length;
-								  var is_last = !_.isEmpty(answer.component.data.query.is_last_page) ? true : nb_left <= 0;  
-								  
-								  Utils.log('More content retrieved for component',component_id,new_ids,new_items,component);
-								  
-								  cb_ok(new_items,is_last,{nb_left:nb_left,new_ids:new_ids,global:global,component:component});
-								  
-		    				  }else{
-			    				  app.triggerError(
-			    					  'getmore:global-not-found',
-			    					  {type:'not found',where:'app::getMoreOfComponent',message:'Global not found : '+ global},
+    		  
+    		  var component_data = component.get('data');
+    		  
+    		  if( component_data.hasOwnProperty('ids') ){
+    		  
+		    	  var token = getToken('component');
+		    	  var ws_url = token +'/component/'+ component_id;
+		    	  
+		    	  var last_item_id = _.last(component_data.ids);
+		    	  ws_url += '?before_item='+ last_item_id;
+		    	  
+		    	  $.ajax({
+		    		  type: 'GET',
+		    		  url: Config.wp_ws_url + ws_url,
+		    		  success: function(answer) {
+			    		  if( answer.result && answer.result.status == 1 ){
+			    			  if( answer.component.slug == component_id ){
+			    				  var global = answer.component.global;
+			    				  if( app.globals.hasOwnProperty(global) ){
+			    					  
+			    					  var new_ids = _.difference(answer.component.data.ids,component_data.ids);
+			    					  
+			    					  component_data.ids = _.union(component_data.ids,answer.component.data.ids); //merge ids
+			    					  component.set('data',component_data);
+			    					  
+				    				  var current_items = app.globals[global];
+									  _.each(answer.globals[global],function(item, id){
+										  current_items.add(_.extend({id:id},item)); //auto merges if "id" already in items
+									  });
+									  
+			    					  var new_items = [];
+									  _.each(new_ids,function(item_id){
+										  new_items.push(current_items.get(item_id));
+				          	  		  });
+									  
+									  var nb_left = component_data.total - component_data.ids.length;
+									  var is_last = !_.isEmpty(answer.component.data.query.is_last_page) ? true : nb_left <= 0;  
+									  
+									  Utils.log('More content retrieved for component',{component_id:component_id,new_ids:new_ids,new_items:new_items,component:component});
+									  
+									  cb_ok(new_items,is_last,{nb_left:nb_left,new_ids:new_ids,global:global,component:component});
+									  
+			    				  }else{
+				    				  app.triggerError(
+				    					  'getmore:global-not-found',
+				    					  {type:'not-found',where:'app::getMoreOfComponent',message:'Global not found : '+ global},
+								  		  cb_error
+						    		  );
+				    			  }
+			    			  }else{
+							  	  app.triggerError(
+							  		  'getmore:wrong-component-id',
+							  		  {type:'not-found',where:'app::getMoreOfComponent',message:'Wrong component id : '+ component_id},
 							  		  cb_error
 					    		  );
 			    			  }
-		    			  }else{
+			    		  }else{
 						  	  app.triggerError(
-						  		  'getmore:wrong-component-id',
-						  		  {type:'not found',where:'app::getMoreOfComponent',message:'Wrong component id : '+ component_id},
+						  		  'getmore:ws-return-error',
+						  		  {type:'web-service',where:'app::getMoreOfComponent',message:'Web service "component" returned an error : ['+ answer.result.message +']'},
 						  		  cb_error
 				    		  );
-		    			  }
-		    		  }else{
-					  	  app.triggerError(
-					  		  'getmore:ws-return-error',
-					  		  {type:'web-service',where:'app::getMoreOfComponent',message:'Web service "component" returned an error : ['+ answer.result.message +']'},
-					  		  cb_error
+			    		  }
+			    	  },
+			    	  error: function(jqXHR, textStatus, errorThrown){
+			    		  app.triggerError(
+			    			  'getmore:ajax',
+			    			  {type:'ajax',where:'app::getMoreOfComponent',message: textStatus + ': '+ errorThrown,data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
+			    			  cb_error
 			    		  );
-		    		  }
-		    	  },
-		    	  error: function(jqXHR, textStatus, errorThrown){
-		    		  app.triggerError(
-		    			  'getmore:ajax',
-		    			  {type:'ajax',where:'app::getMoreOfComponent',message: textStatus + ': '+ errorThrown,data:{url: Config.wp_ws_url + ws_url, jqXHR:jqXHR, textStatus:textStatus, errorThrown:errorThrown}},
-		    			  cb_error
-		    		  );
-		    	  }
-	    	  });
+			    	  }
+		    	  });
+    		  }
     	  }
       };
 	  
@@ -537,8 +529,60 @@ define(function (require) {
 	    				  }
 	    			  }
 	    			  break;
+	    		  case 'hooks':
+	    			  if( component.get('data') ){
+		    			  var data = component.get('data');
+		    			  if( component.get('global') ){
+			    			  var global = app.globals[component.get('global')];
+			    			  if( global ){
+			    				  if( data.hasOwnProperty('ids') ){
+			    					  var items = new Items.ItemsSlice();
+			    					  _.each(data.ids,function(post_id, index){
+			        					  items.add(global.get(post_id));
+			        				  });
+			    					  
+			    					  var view_data = {items:items.toJSON(),title: component.get('label')};
+			    					  if( data.hasOwnProperty('total') ){
+			    						  view_data = _.extend(view_data,{total:data.total});
+			    					  }
+			    					  
+			    					  component_data = {
+		    							  type: 'hooks-list',
+		        						  view_data: view_data,
+		        						  data: data
+			        				  };
+			    					  
+			    				  }else{
+			    					  //We have a global, but no ids : it's just as if we had no global :
+			    					  component_data = {
+		    							  type: 'hooks-no-global',
+		        						  view_data: data,
+		        						  data: data
+			        				  }; 
+			    				  }
+			    			  }
+		    			  }else{
+		    				  Utils.log('app.js warning : custom component has a global but no ids : the global will be ignored.');
+		    				  component_data = {
+    							  type: 'hooks-no-global',
+        						  view_data: data,
+        						  data: data
+	        				  };
+		    			  }
+    		  		  }else{
+    		  			  app.triggerError(
+  			    			  'getcomponentdata:hooks:no-data',
+  			    			  {type:'wrong-data',where:'app::getComponentData',message: 'Custom component has no data attribute',data:{component:component}},
+  			    			  cb_error
+  			    		  );
+    		  		  }
+	    			  break;
     		  }
     	  };
+    	  
+    	  if( component_data != null ){
+    		  component_data = _.extend({id:component.get('id'),label:component.get('label')},component_data);
+    	  }
 
     	  return component_data;
       };

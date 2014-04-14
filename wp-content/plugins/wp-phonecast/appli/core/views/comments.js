@@ -4,17 +4,16 @@ define(function (require) {
 
     var $                   = require('jquery'),
         _                   = require('underscore'),
-        Backbone            = require('backbone'),
-        ThemeTplTags		= require('core/theme-tpl-tags'),
-        Tpl                 = require('text!theme/comments.html');
+        TemplateView        = require('core/views/backbone-template-view'),
+        ThemeTplTags		= require('core/theme-tpl-tags');
 
-    return Backbone.View.extend({
+    return TemplateView.extend({
     	
     	className: "app-page",
     	
     	initialize : function(args) {
             
-    		this.template = _.template(Tpl);
+    		this.setTemplate('comments');
            
             _.bindAll(this,'render');
             

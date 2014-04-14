@@ -1,7 +1,7 @@
 <?php
 class WppcComponentTypePostsList extends WppcComponentType{
 	
-	protected function compute_data($options,$args=array()){
+	protected function compute_data($component,$options,$args=array()){
 		global $wpdb;
 		
 		$before_post_date = '';
@@ -51,7 +51,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 				}
 			}
 				
-			$query_args = apply_filters('wppc_posts_list_query_args',$query_args,$options,$args,$query);
+			$query_args = apply_filters('wppc_posts_list_query_args',$query_args,$component,$options,$args,$query);
 				
 			$posts_query = new WP_Query($query_args);
 				
@@ -80,7 +80,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 				'query' => array('type'=>'custom-posts-list', 'taxonomy'=>'', 'terms'=>array(), 'is_last_page'=>true, 'before_item'=>0)
 			);
 			
-			$posts_list_data = apply_filters('wppc_posts_list_custom-'. $options['hook'],$posts_list_data,$options,$args,$before_post_date);
+			$posts_list_data = apply_filters('wppc_posts_list_custom-'. $options['hook'],$posts_list_data,$component,$options,$args,$before_post_date);
 			
 			$posts = $posts_list_data['posts'];
 			$total = !empty($posts_list_data['total']) ? $posts_list_data['total'] : count($posts);
@@ -174,7 +174,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			$current_post_type = $options['post-type'];
 			$current_taxonomy = $options['taxonomy'];
 			$current_term = $options['term'];
-			$current_hook = $options['hook'];
+			$current_hook = !empty($options['hook']) ? $options['hook'] : '';
 		}
 		
 		?>

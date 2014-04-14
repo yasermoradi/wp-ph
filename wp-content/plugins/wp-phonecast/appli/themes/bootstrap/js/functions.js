@@ -7,6 +7,14 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 		return token; //For this example, we do nothing, just return the default token.
 	});
 	
+	//Example of how to chose a template for a specific custom component :
+	App.filter('template',function(template,current_page){
+		if( current_page.fragment == 'component-total-custom' ){
+			template = 'my-custom-component';
+		}
+		return template;
+	});
+	
 	//Launch app contents refresh when clicking the refresh button :
 	$('#refresh-button').click(function(e){
 		e.preventDefault();
@@ -32,7 +40,7 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	
 	App.on('info',function(info){
 		if( info.event == 'no-content' ){
-			App.showInfoPage(info.message); //Set your own custom message here
+			
 		}
 	});
 	
@@ -70,7 +78,7 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 		});
 	});
 	
-	App.on('page:leave',function(current_page,view){
+	App.on('page:leave',function(current_page,queried_page,view){
 		//current_page.page_type can be 'list','single','page','comments'
 		if( current_page.page_type == 'list' ){
 			Storage.set('scroll-pos',current_page.fragment,$('body').scrollTop());
@@ -95,7 +103,12 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	$('#container').on('click','#custom-page',function(e){
 		e.preventDefault();
 		//Render custom page using any custom template that you created in your theme (here, a template called "info.html") : 
-		App.showCustomPage('info',{title:"Custom page example",content:"This is a custom page created dynamically in functions.js :-)"}); 
+		App.showCustomPage('info',{
+			title:"Custom page example",
+			content:"This is a custom page created dynamically in functions.js :-)",
+			any_data_i_want:"Display anything you want! A key > value list for example :",
+			my_list:{"First element":"Item one", "Second one":"Item two"}
+		}); 
 	});
 	
 	function closeMenu(){

@@ -7,7 +7,7 @@ define(function (require) {
     var CustomPage = Backbone.Model.extend({
     	defaults : {
     		id: '',
-    		template: 'custom',
+    		template: 'custom-page',
     		data: {}
         }
     });

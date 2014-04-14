@@ -6,7 +6,7 @@
 /*
 class WppcComponentTypeNavigation extends WppcComponentType{
 	
-	protected function compute_data($options,$args=array()){
+	protected function compute_data($component,$options,$args=array()){
 	} 
 	
 	public function get_options_to_display($component){

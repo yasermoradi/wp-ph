@@ -1,7 +1,7 @@
 <?php
 class WppcComponentTypePage extends WppcComponentType{
 	
-	protected function compute_data($options,$args=array()){
+	protected function compute_data($component,$options,$args=array()){
 		global $wpdb;
 		
 		if( !empty($options['page']) ){
@@ -79,7 +79,7 @@ class WppcComponentTypePage extends WppcComponentType{
 	}
 	
 	public function echo_form_fields($component){
-		$pages = get_posts(array('post_type'=>'page','number_posts'=>-1));
+		$pages = get_posts(array('post_type'=>'page','posts_per_page'=>-1));
 		$pages = apply_filters('wppc_component_type_pages_form_pages',$pages);
 		
 		$current_page = '';

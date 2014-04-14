@@ -4,7 +4,7 @@ abstract class WppcComponentType{
 
 	private $data = array('specific'=>array(),'globals'=>array());
 	
-	abstract protected function compute_data($options,$args=array());
+	abstract protected function compute_data($component,$options,$args=array());
 	abstract public function get_options_to_display($component);
 	abstract public function get_ajax_action_html_answer($action,$params);
 	abstract public function echo_form_fields($component);
@@ -16,7 +16,7 @@ abstract class WppcComponentType{
 		$this->data['specific']['label'] = $component->label;
 		$this->data['specific']['type'] = $component->type;
 		$this->data['specific']['slug'] = $component->slug;
-		$this->compute_data($component->options,$args);
+		$this->compute_data($component,$component->options,$args);
 		return $this->data;
 	}
 	
