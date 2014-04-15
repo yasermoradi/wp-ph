@@ -205,27 +205,14 @@ define(function (require,exports) {
 		  });
 	  };
 	  
-	  themeApp.getBackButtonDisplay = function(current_page){
-		  var display = 'default';
+	  themeApp.getBackButtonDisplay = function(){
+		  var display = '';
 		  
-		  var current_page = App.getCurrentPageData();
+		  var previous_page = App.getPreviousPageData();
 		  
-		  if( current_page.page_type == 'single' || current_page.page_type == 'comments' ){
-			  var previous_page = App.getPreviousPageData();
-			  if( !_.isEmpty(previous_page) ){
-				  display = 'show';
-			  }
-		  }
-		  else if( current_page.page_type == 'page' ){
-			  display = 'hide';
-		  }
-		  else if( current_page.page_type == 'list' ){
-			  display = 'hide';
-		  }
-		  else if( current_page.page_type == 'custom-page' ){
-			  display = 'hide';
-		  }
-		  else if( current_page.page_type == 'custom-component' ){
+		  if( !_.isEmpty(previous_page) ){
+			  display = 'show';
+		  }else{
 			  display = 'hide';
 		  }
 		  
