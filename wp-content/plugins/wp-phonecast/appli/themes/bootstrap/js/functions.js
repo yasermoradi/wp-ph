@@ -11,6 +11,8 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	App.filter('template',function(template,current_page){
 		if( current_page.fragment == 'component-total-custom' ){
 			template = 'my-custom-component';
+		}else if( current_page.global == 'custom-global-total-custom' ){
+			template = 'my-single';
 		}
 		return template;
 	});
@@ -71,10 +73,12 @@ define(['jquery','core/theme-app','core/lib/storage.js','theme/js/bootstrap.min'
 	
 	$('#container').on('click','.get-more',function(e){
 		e.preventDefault();
+		$(this).attr('disabled','disabled').text('Loading...');
 		App.getMoreComponentItems(function(){
 			//If something is needed once items are retrieved, do it here.
 			//Note : if the "get more" link is included in the archive.html template (which is recommended),
 			//it will be automatically refreshed.
+			$(this).removeAttr('disabled');
 		});
 	});
 	

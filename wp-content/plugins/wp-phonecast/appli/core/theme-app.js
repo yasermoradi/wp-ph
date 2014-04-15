@@ -222,6 +222,13 @@ define(function (require,exports) {
 		  else if( current_page.page_type == 'list' ){
 			  display = 'hide';
 		  }
+		  else if( current_page.page_type == 'custom-page' ){
+			  display = 'hide';
+		  }
+		  else if( current_page.page_type == 'custom-component' ){
+			  display = 'hide';
+		  }
+		  
 		  return display;
 	  };
 	  

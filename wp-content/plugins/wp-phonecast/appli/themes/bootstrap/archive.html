@@ -42,7 +42,7 @@
 		</ul>
 		
 		<% if( TemplateTags.displayGetMoreLink() ){ %>
-			<a class="get-more" href="#">Get more! (<%= TemplateTags.getMoreLinkNbLeft() %> left)</a>
+			<button type="button" class="get-more btn btn-default">Get more posts (<%= TemplateTags.getMoreLinkNbLeft() %> left)</button>
 		<% } %>
 		
 	<% }else{ %>

@@ -35,8 +35,11 @@ define(function (require,exports) {
 	  };
 	  
       themeTplTags.getPostLink = function(post_id){
-    	  //TODO Check if the post exists in the posts global 
-    	  return '#single-'+ post_id;
+    	  //TODO Check if the post exists in the posts global
+    	  //+ handle the case where we don't call this from an archive.
+    	  var page_data = App.getCurrentPageData();
+    	  var global = page_data.global;
+    	  return '#single/'+ global +'/'+ post_id;
       };
       
       themeTplTags.getCommentsLink = function(post_id){

@@ -101,7 +101,8 @@ define(function (require) {
 			  component_id:page_data.component_id,
 			  item_id:page_data.item_id,
 			  fragment:page_data.fragment,
-			  data:page_data.hasOwnProperty('data') ? page_data.data : {}
+			  data:page_data.hasOwnProperty('data') ? page_data.data : {},
+			  global:page_data.hasOwnProperty('global') ? page_data.global : '',
 		  };
 	  };
 	  
@@ -135,6 +136,8 @@ define(function (require) {
 			  }else if( queried_page_data.page_type == 'single' ){
 				  if( current_page.page_type == 'list' ){
 					  history_push(queried_page_data);
+				  }else if( current_page.page_type == 'custom-component' ){
+					  history_push(queried_page_data);
 				  }else if( current_page.page_type == 'comments' ){
 					  if( previous_page.page_type == 'single' && previous_page.item_id == queried_page_data.item_id ){
 						  history_stack.pop();
@@ -153,9 +156,14 @@ define(function (require) {
 				  //if( current_page.page_type == 'single' && current_page.item_id == item_id ){
 					  history_push(queried_page_data);
 				  //}
-			  }else if( queried_page_data.page_type == 'info' ){
+			  }else if( queried_page_data.page_type == 'custom-page' ){
 				  history_stack = [];
 				  history_push(queried_page_data);
+			  }else if( queried_page_data.page_type == 'custom-component' ){
+				  history_stack = [];
+				  history_push(queried_page_data);
+			  }else{
+				  history_stack = [];
 			  }
 			  
 		  }
@@ -517,13 +525,14 @@ define(function (require) {
 	    			  break;
 	    		  case 'page':
 	    			  var data = component.get('data');
-	    			  var global = app.globals[component.get('global')];
+	    			  var component_global = component.get('global');
+	    			  var global = app.globals[component_global];
 	    			  if( global ){
 	    				  var page = global.get(data.id);
 	    				  if( page ){
 	    					  component_data = {
 	    							  type: component_type,
-	        						  view_data: {post:page},
+	        						  view_data: {item:page,global:component_global},
 	        						  data: data
 	        				  };
 	    				  }
@@ -581,7 +590,7 @@ define(function (require) {
     	  };
     	  
     	  if( component_data != null ){
-    		  component_data = _.extend({id:component.get('id'),label:component.get('label')},component_data);
+    		  component_data = _.extend({id:component.get('id'),label:component.get('label'),global:component.get('global')},component_data);
     	  }
 
     	  return component_data;

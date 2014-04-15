@@ -14,7 +14,7 @@
 						
 					<div class="media-body">
 						<h4 class="media-heading">
-							<a href="#"><%= item.prenom %> <%= item.nom %></a>
+							<a href="<%= TemplateTags.getPostLink(item.id) %>"><%= item.prenom %> <%= item.nom %></a>
 						</h4>
 						<p><%= item.desc %></p>
 					</div>

@@ -13,7 +13,7 @@ define(function (require) {
         routes: {
             "": "default_route",
             "posts-list-:id" : "archive",
-            "single-:id" : "single",
+            "single/:global/:id" : "single",
             "page-:id" : "page",
             "comments-:post_id" : "comments",
             "component-:id" : "component",
@@ -34,7 +34,7 @@ define(function (require) {
         		if( component ){
         			switch( component.type ){
         				case 'posts-list':
-        					App.setQueriedPage({page_type:'list',component_id:component_id,item_id:'',data:component.data});
+        					App.setQueriedPage({page_type:'list',component_id:component_id,item_id:'',global:component.global,data:component.data});
         					require(["core/views/archive"],function(ArchiveView){
         						var view = new ArchiveView(component.view_data);
         						view.checkTemplate(function(){
@@ -43,7 +43,7 @@ define(function (require) {
 	        				});
         					break;
         				case 'page':
-        					App.setQueriedPage({page_type:'page',component_id:component_id,item_id:component.data.id,data:component.data});
+        					App.setQueriedPage({page_type:'page',component_id:component_id,item_id:component.data.id,global:component.global,data:component.data});
         					require(["core/views/single"],function(SingleView){
 	        					var view = new SingleView(component.view_data);
         						view.checkTemplate(function(){
@@ -53,7 +53,7 @@ define(function (require) {
         					break;
         				case 'hooks-list':
         				case 'hooks-no-global':
-        					App.setQueriedPage({page_type:'custom-component',component_id:component_id,item_id:'',data:component.data});
+        					App.setQueriedPage({page_type:'custom-component',component_id:component_id,item_id:'',global:component.global,data:component.data});
         					require(["core/views/custom-component"],function(CustomComponentView){
         						var view = new CustomComponentView({component:component});
         						view.checkTemplate(function(){
@@ -72,23 +72,26 @@ define(function (require) {
         /**
          * The post must be in the "posts" global to be accessed via this "single" route.
          */
-        single: function (post_id) {
+        single: function (item_global,item_id) {
         	require(["core/app"],function(App){
-	        	var global = App.globals['posts'];
+	        	var global = App.globals[item_global];
 	        	if( global ){
-		        	var post = global.get(post_id);
-		        	if( post ){
-		        		App.setQueriedPage({page_type:'single',component_id:'',item_id:post_id,data:{post:post.toJSON()}});
+		        	var item = global.get(item_id);
+		        	if( item ){
+		        		var item_data = item_global == 'posts' ? {post:item.toJSON()} : {item:item.toJSON()};
+		        		App.setQueriedPage({page_type:'single',component_id:'',item_id:item_id,global:item_global,data:item_data});
 		        		require(["core/views/single"],function(SingleView){
-		        			var view = new SingleView({post:post});
+		        			var view = new SingleView({item:item,global:item_global});
     						view.checkTemplate(function(){
 								RegionManager.show(view);
 							});
 		        		});
 		        	}else{
+		        		Utils.log('Error : router single route : item with id "'+ item_id +'" not found in global "'+ item_global +'".');
 	        			App.router.default_route();
 	        		}
 	        	}else{
+	        		Utils.log('Error : router single route : global "'+ item_global +'" not found.');
 	    			App.router.default_route();
 	    		}
         	});

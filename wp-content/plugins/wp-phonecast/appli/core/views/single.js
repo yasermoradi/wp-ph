@@ -17,13 +17,14 @@ define(function (require) {
            
             _.bindAll(this,'render');
             
-    		this.post = args.post;
+    		this.item = args.item;
+    		this.global = args.hasOwnProperty('global') ? args.global : 'posts';
     		
-    		this.post.on('change', this.render);
+    		this.item.on('change', this.render);
         },
 
         render : function() {
-        	var renderedContent = this.template({ post : this.post.toJSON(), TemplateTags : ThemeTplTags });
+        	var renderedContent = this.template({ post : this.item.toJSON(), TemplateTags : ThemeTplTags });
             $(this.el).html(renderedContent); 
             return this;
         }
