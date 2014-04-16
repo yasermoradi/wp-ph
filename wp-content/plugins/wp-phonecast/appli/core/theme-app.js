@@ -304,7 +304,7 @@ define(function (require,exports) {
 				  transition = 'replace';
 			  }
 		  }else if( current_page.page_type == 'single' ){
-			  if( previous_page.page_type == 'list' || current_page.page_type == 'custom-component' ){
+			  if( previous_page.page_type == 'list' || previous_page.page_type == 'custom-component' ){
 				  transition = 'left';
 			  }else if( previous_page.page_type == 'comments' ){
 				  transition = 'right';
