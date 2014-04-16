@@ -149,19 +149,19 @@
 	font-size:10px;
 }
 
-.single-content .wp-caption a {
+.single-content .content-image a {
 	display:block;
 	border:1px #B2B2B2 solid;
 	padding:1px;
 }
 
-.single-content .wp-caption img {
+.single-content .content-image img {
 	width:100%;
 	height:auto;
 	display:block; /* Done to fix the padding bottom bug */
 }
 
-.single-content .wp-caption .wp-caption-text {
+.single-content .content-image .wp-caption-text {
 	font-size:12px;
 	line-height:14px;
 	color:#808080;

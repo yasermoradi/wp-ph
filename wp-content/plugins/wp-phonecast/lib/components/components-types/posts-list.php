@@ -99,7 +99,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		
 	} 
 	
-	private function get_post_data($_post){
+	protected function get_post_data($_post){
 		global $post;
 		$post = $_post;
 		setup_postdata($post);
@@ -117,7 +117,11 @@ class WppcComponentTypePostsList extends WppcComponentType{
 			'nb_comments' => (int)get_comments_number()
 		);
 		
-		$content = WppcComponentsUtils::get_filtered_content();
+		//Use the "wppc_posts_list_post_content" filter to format app posts content your own way :
+		$content = apply_filters('wppc_posts_list_post_content','',$post);
+		if( empty($content) ){
+			$content = WppcComponentsUtils::get_formated_content();
+		}
 		$post_data['content'] = $content;
 		
 		$post_data['excerpt'] = !empty($post->post_excerpt) ? $post->post_excerpt : WppcComponentsUtils::cut_content(200,$content);
@@ -225,7 +229,7 @@ class WppcComponentTypePostsList extends WppcComponentType{
 		} 
 	}
 	
-	private function echo_sub_options_html($current_post_type,$current_taxonomy='',$current_term = '',$current_hook = ''){
+	protected function echo_sub_options_html($current_post_type,$current_taxonomy='',$current_term = '',$current_hook = ''){
 
 		?>
 		<?php if( $current_post_type != 'custom'): ?>

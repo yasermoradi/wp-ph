@@ -14,7 +14,7 @@ class WppcComponentTypePage extends WppcComponentType{
 		}
 	} 
 	
-	private function get_page_data($page){
+	protected function get_page_data($page){
 		global $post;
 		$post = $page;
 		setup_postdata($post);
@@ -31,7 +31,11 @@ class WppcComponentTypePage extends WppcComponentType{
 				'nb_comments' => (int)get_comments_number()
 		);
 	
-		$content = WppcComponentsUtils::get_filtered_content();
+		//Use the "wppc_posts_list_post_content" filter to format app pages content your own way :
+		$content = apply_filters('wppc_page_content','',$post);
+		if( empty($content) ){
+			$content = WppcComponentsUtils::get_formated_content();
+		}
 		$post_data['content'] = $content;
 	
 		$post_data['excerpt'] = !empty($post->post_excerpt) ? $post->post_excerpt : WppcComponentsUtils::cut_content(200,$content);
@@ -47,7 +51,7 @@ class WppcComponentTypePage extends WppcComponentType{
 		return (object)$post_data;
 	}
 	
-	private function get_post_data($_post){
+	protected function get_post_data($_post){
 		global $post;
 		$post = $_post;
 		setup_postdata($post);

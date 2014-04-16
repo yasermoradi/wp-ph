@@ -82,7 +82,11 @@ class WppcWebServices{
 			header('Access-Control-Allow-Credentials: true');
 			exit;
 		}
-	
+		
+		//If the app current theme has some PHP (hooks!) to be executed before the web
+		//service process, include it here :
+		WppcThemes::include_app_theme_php(WppcApps::get_app_id($app_id));
+		
 		$service_answer = null;
 	
 		switch($action){
@@ -184,9 +188,9 @@ class WppcWebServices{
 				break;
 		}
 	
-		//Simulate delay :
+		//Simulate delay : TODO : make this configurable in WP BO :
 		//time_nanosleep(rand(0,1), (floatval(rand(20,100))/100) * 1000000000);
-		sleep(2);
+		//sleep(2);
 	
 		if( $service_answer !== null ){
 			self::exit_sending_answer($service_answer,$app_id,$service_slug);

@@ -1,7 +1,9 @@
 <?php
 class WppcComponentsUtils{
 	
-	public static function get_filtered_content(){
+	public static function get_formated_content(){
+		global $post;
+		
 		$content = get_the_content();
 	
 		$replacement_image = '<img class="unavailable" alt="contenu indisponible" src="'. get_bloginfo('wpurl') .'/wp-content/uploads/media_indisponible.png" width="604" height="332" />';
@@ -26,6 +28,12 @@ class WppcComponentsUtils{
 	
 		$content = strip_tags($content,'<br/><br><p><div><h1><h2><h3><h4><h5><h6><a><span><sup><sub><img><i><em><strong><b><ul><ol><li><blockquote>');
 	
+		//Use this "wppc_post_content_format" filter to add your own formating to
+		//apps posts and pages.
+		//To overide (relace) this default formating completely, use the "wppc_posts_list_post_content"
+		//and "wppc_page_content" hooks. 
+		$content = apply_filters('wppc_post_content_format',$content,$post);
+		
 		return $content;
 	}
 	
@@ -60,15 +68,15 @@ class WppcComponentsUtils{
 			$new_content =  substr($str,0,strrpos($str,' '));
 	
 			//exceptions
-			//retire le guillemet problématique à la fin si il y en a un
+			//retire le guillemet problï¿½matique ï¿½ la fin si il y en a un
 			$quote = substr($new_content,-5);
-			if(preg_match('|["«]|is', $quote)) {
+			if(preg_match('|["ï¿½]|is', $quote)) {
 				$new_content = substr_replace($new_content,'',-5);
 			}
 			// the last character of $content
 			$last = substr($new_content,-1,1);
 	
-			if(!preg_match("|[a-z0-9àùèéâêîûô]|i", $last)) {
+			if(!preg_match("|[a-z0-9ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]|i", $last)) {
 				$new_content = substr_replace($new_content, "", -1);
 			}
 	
