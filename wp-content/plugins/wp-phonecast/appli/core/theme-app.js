@@ -297,14 +297,14 @@ define(function (require,exports) {
 	  themeApp.getTransitionDirection = function(current_page,previous_page){
 		  var transition = 'replace';
 		  
-		  if( current_page.page_type == 'list' ){
+		  if( current_page.page_type == 'list' || current_page.page_type == 'custom-component' ){
 			  if( previous_page.page_type == 'single' ){
 				  transition = 'right';
 			  }else{
 				  transition = 'replace';
 			  }
 		  }else if( current_page.page_type == 'single' ){
-			  if( previous_page.page_type == 'list' ){
+			  if( previous_page.page_type == 'list' || current_page.page_type == 'custom-component' ){
 				  transition = 'left';
 			  }else if( previous_page.page_type == 'comments' ){
 				  transition = 'right';
