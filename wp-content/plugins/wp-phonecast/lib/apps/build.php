@@ -326,6 +326,11 @@ class WppcBuild{
 					}
 				}
 				
+				//Filter php directory
+				if( preg_match('|themes[/\\\].+?[/\\\]php|',$filename) ){
+					continue;
+				}
+				
 	            if( is_dir($file) === true ){
 	                if( !$zip->addEmptyDir($filename) ){
 						$answer['msg'] = sprintf(__('Could not add directory [%s] to zip archive'),filename);
