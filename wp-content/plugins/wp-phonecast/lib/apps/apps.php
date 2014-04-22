@@ -87,10 +87,10 @@ class WppcApps{
 
 		add_meta_box(
 			'wppc_app_phonegap_data',
-			__('Phonegap config.xml infos'),
+			__('Phonegap config.xml data'),
 			array(__CLASS__,'inner_phonegap_infos_box'),
 			'wppc_apps',
-			'side',
+			'normal',
 			'default'
 		);
 		
@@ -160,6 +160,12 @@ class WppcApps{
 			<br/><br/>
 			<label><?php _e('Application author email') ?></label> : <br/> 
 			<input type="text" name="wppc_app_author_email" value="<?php echo $main_infos['author_email'] ?>" />
+			<br/><br/>
+			<label><?php _e('Phonegap plugins') ?></label> : <br/> 
+			<textarea name="wppc_app_phonegap_plugins"><?php echo $main_infos['phonegap_plugins'] ?></textarea>
+			<span class="description"><?php _e('Write the phonegap plugins tags as defined in the PhoneGap documentation.<br/>
+				Example : to include the "In App Browser" plugin for a Phonegap Build compilation, enter &lt;gap:plugin name="org.apache.cordova.inappbrowser" version="0.3.3" /&gt; 
+				directly in the textarea.') ?></span>
 			<br/><br/>
 			<a href="<?php echo WppcBuild::get_appli_dir_url() .'/config.xml?wppc_app_id='. self::get_app_slug($post->ID) ?>"><?php _e('View config.xml') ?></a>
 		</div>
@@ -241,6 +247,11 @@ class WppcApps{
 	    
 	    if ( isset( $_POST['wppc_app_author_email'] ) ) {
 	    	update_post_meta( $post_id, '_wppc_app_author_email', sanitize_text_field( $_POST['wppc_app_author_email'] ) );
+	    }
+	    
+	    if ( isset( $_POST['wppc_app_phonegap_plugins'] ) ) {
+			$phonegap_plugins = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $_POST['wppc_app_phonegap_plugins'] );
+	    	update_post_meta( $post_id, '_wppc_app_phonegap_plugins', trim($phonegap_plugins) );
 	    }
 	    
 	    if ( isset( $_POST['wppc_app_secured'] ) ) {
@@ -334,6 +345,16 @@ class WppcApps{
 		$author = get_post_meta($post_id,'_wppc_app_author',true);
 		$author_website = get_post_meta($post_id,'_wppc_app_author_website',true);
 		$author_email = get_post_meta($post_id,'_wppc_app_author_email',true);
+		
+		$phonegap_plugins = '';
+		
+		if( !metadata_exists('post',$post_id,'_wppc_app_phonegap_plugins') ){
+			//Deactivate default plugins for now.
+			//$phonegap_plugins = self::get_default_phonegap_plugins();
+		}else{
+			$phonegap_plugins = get_post_meta($post_id,'_wppc_app_phonegap_plugins',true);
+		}
+
 		return array('title'=>$title,
 					 'name'=>$name,
 					 'app_phonegap_id'=>$app_phonegap_id,
@@ -344,7 +365,8 @@ class WppcApps{
 					 'platform'=>$platform,
 					 'author'=>$author,
 					 'author_website'=>$author_website,
-					 'author_email'=>$author_email
+					 'author_email'=>$author_email,
+					 'phonegap_plugins'=>$phonegap_plugins,
 					 );
 	}
 	
@@ -352,6 +374,11 @@ class WppcApps{
 		$secured_raw = get_post_meta($post_id,'_wppc_app_secured',true);
 		$secured_raw = $secured_raw === '' || $secured_raw === false ? 1 : $secured_raw;
 		return intval($secured_raw) == 1;
+	}
+	
+	private static function get_default_phonegap_plugins(){
+		$default_plugins = '<gap:plugin name="org.apache.cordova.inappbrowser" />';
+		return $default_plugins;
 	}
 	
 }

@@ -113,6 +113,7 @@ define(function (require) {
 		$app_author_email = $app_main_infos['author_email'];
 		$app_author_website = $app_main_infos['author_website'];
 		$app_platform = $app_main_infos['platform'];
+		$app_phonegap_plugins = $app_main_infos['phonegap_plugins'];
 		
 		$xmlns = 'http://www.w3.org/ns/widgets';
 		$xmlns_gap = 'http://phonegap.com/ns/1.0';
@@ -143,7 +144,12 @@ define(function (require) {
 	
 <?php endif ?>
 	<!-- Add Icon, Splash screen and any PhoneGap plugin declaration here -->
+<?php if( !empty($app_phonegap_plugins) ): ?>
+
+	<?php echo str_replace("\n","\n\t",$app_phonegap_plugins) ?>
 	
+<?php endif ?>
+
 </widget>
 <?php
 		$content = '';
