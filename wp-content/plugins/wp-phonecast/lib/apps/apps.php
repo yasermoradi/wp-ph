@@ -149,6 +149,9 @@ class WppcApps{
 			<label><?php _e('Application versionCode (Android only)') ?></label> : <br/> 
 			<input type="text" name="wppc_app_version_code" value="<?php echo $main_infos['version_code'] ?>" />
 			<br/><br/>
+			<label><?php _e('Phonegap version') ?></label> : <br/> 
+			<input type="text" name="wppc_app_phonegap_version" value="<?php echo $main_infos['phonegap_version'] ?>" />
+			<br/><br/>
 			<label><?php _e('Application author') ?></label> : <br/> 
 			<input type="text" name="wppc_app_author" value="<?php echo $main_infos['author'] ?>" />
 			<br/><br/>
@@ -218,6 +221,10 @@ class WppcApps{
 	    
 	    if ( isset( $_POST['wppc_app_version_code'] ) ) {
 	    	update_post_meta( $post_id, '_wppc_app_version_code', sanitize_text_field( $_POST['wppc_app_version_code'] ) );
+	    }
+	    
+	    if ( isset( $_POST['wppc_app_phonegap_version'] ) ) {
+	    	update_post_meta( $post_id, '_wppc_app_phonegap_version', sanitize_text_field( $_POST['wppc_app_phonegap_version'] ) );
 	    }
 	    
 	    if ( isset( $_POST['wppc_app_platform'] ) ) {
@@ -322,6 +329,7 @@ class WppcApps{
 		$desc = get_post_meta($post_id,'_wppc_app_desc',true);
 		$version = get_post_meta($post_id,'_wppc_app_version',true);
 		$version_code = get_post_meta($post_id,'_wppc_app_version_code',true);
+		$phonegap_version = get_post_meta($post_id,'_wppc_app_phonegap_version',true);
 		$platform = get_post_meta($post_id,'_wppc_app_platform',true);
 		$author = get_post_meta($post_id,'_wppc_app_author',true);
 		$author_website = get_post_meta($post_id,'_wppc_app_author_website',true);
@@ -332,6 +340,7 @@ class WppcApps{
 					 'desc'=>$desc,
 					 'version'=>$version,
 					 'version_code'=>$version_code,
+					 'phonegap_version'=>$phonegap_version,
 					 'platform'=>$platform,
 					 'author'=>$author,
 					 'author_website'=>$author_website,
