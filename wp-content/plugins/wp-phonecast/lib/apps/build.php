@@ -338,10 +338,24 @@ class WppcBuild{
 						return $answer;
 					}
 	            }elseif( is_file($file) === true ){
-	                if( !$zip->addFile($file,$filename) ){
-						$answer['msg'] = sprintf(__('Could not add file [%s] to zip archive'),filename);
-						$answer['ok'] = 0;
-						return $answer;
+
+					if( $filename == 'index.html' ){
+						
+						$index_content = self::filter_index(file_get_contents($file));
+						
+						if( !$zip->addFromString($filename,$index_content) ){
+							$answer['msg'] = sprintf(__('Could not add file [%s] to zip archive'),filename);
+							$answer['ok'] = 0;
+							return $answer;
+						}
+						
+					}else{
+
+		                if( !$zip->addFile($file,$filename) ){
+							$answer['msg'] = sprintf(__('Could not add file [%s] to zip archive'),filename);
+							$answer['ok'] = 0;
+							return $answer;
+						}
 					}
 	            }
 	        }
@@ -413,6 +427,17 @@ class WppcBuild{
 		}
 
 		return $available_exports;
+	}
+	
+	private static function filter_index($index_content){
+		
+		//Add phonegap.js script :
+		$index_content = str_replace('<head>', "<head>\r\n\t\t<script src=\"phonegap.js\"></script>\r\n\t\t", $index_content);
+		
+		//Remove script used only for app simulation in web browser :
+		$index_content = preg_replace('/<script[^>]*>[^<]*var query[^<]*<\/script>\s*<script/is','<script',$index_content);
+		
+		return $index_content;
 	}
 }
 
