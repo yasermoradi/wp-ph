@@ -92,3 +92,7 @@ a#refresh-button.refreshing {
 li.media{
 	cursor:pointer;
 }
+
+.get-more{
+	margin-bottom:1em;	
+}

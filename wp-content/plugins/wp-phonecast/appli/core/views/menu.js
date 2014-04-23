@@ -8,7 +8,7 @@ define(function (require) {
       	  MenuItems           = require('core/models/menu-items');
       	  
       return Backbone.View.extend({
-  		
+    	  
   		initialize : function(options) {
   			
   	        this.template = _.template(Tpl);
@@ -17,10 +17,6 @@ define(function (require) {
   			
   			this.menu = new MenuItems.MenuItems();
   			
-  	    },
-
-  	    events : {
-  	    	'click .app-link' : 'navigate'
   	    },
 
   	    addItem : function(id,type,label){
@@ -35,13 +31,6 @@ define(function (require) {
   	    	var renderedContent = this.template({'menu_items':this.menu.toJSON()});
   	        $(this.el).html(renderedContent);
   	        return this;
-  	    },
-  	    
-  	    navigate : function(e){
-  	    	require(['core/app'],function(App){
-  	    		e.preventDefault();
-      	    	App.router.navigate($(e.currentTarget).data('href'), {trigger: true});
-  	    	});
   	    }
   	    
   	});

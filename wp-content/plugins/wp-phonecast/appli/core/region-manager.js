@@ -104,7 +104,8 @@ define(function (require) {
 	    	
 	    	if( menuView === null || force_reload ){
 	    		require(['core/views/menu'],function(MenuView){
-		    		menuView = new MenuView();
+	    			var menu_el = $(elMenu).length ? {el:elMenu} : {}; 
+		    		menuView = new MenuView(menu_el);
 	    			menuView.resetAll();
 		    		App.navigation.each(function(element, index){
 		    			var component = App.components.get(element.get('component_id'));
@@ -125,7 +126,6 @@ define(function (require) {
 	    		if( $(elMenu).length 
 	    			&& (!$(elMenu).html().length || (force_reload!=undefined && force_reload) ) ){
 		    		menuView.render();
-		    		$(elMenu).empty().append(menuView.el);
 		    		vent.trigger('menu:refresh',App.getCurrentPageData(),menuView);
 		    		Utils.log('Render navigation',{menu_view:menuView,force_reload:force_reload});
 	    		}
