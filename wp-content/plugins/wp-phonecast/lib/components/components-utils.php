@@ -6,7 +6,7 @@ class WppcComponentsUtils{
 		
 		$content = get_the_content();
 	
-		$replacement_image = '<img class="unavailable" alt="contenu indisponible" src="'. get_bloginfo('wpurl') .'/wp-content/uploads/media_indisponible.png" width="604" height="332" />';
+		$replacement_image = self::get_unavailable_media_img();
 	
 		//Convert dailymotion video
 		$content = preg_replace('/\[dailymotion\](.*?)(\[\/dailymotion\])/is','<div class="video">$1</div>',$content);
@@ -39,41 +39,39 @@ class WppcComponentsUtils{
 	
 	public static function cut_content($limit, $content, $no_cut_string_if_shorter_than_limit = false, $nl2br = false, $cutString = " ...") {
 	
-		//nettoyage des balises : on garde le contenu des <a> et <h...>
 		$content = preg_replace('|(<a.*?>)(.*?)(</a>)|is','$2',$content);
 		$content = preg_replace('#<p(>| .*?>)(.*?)(</p>)#is','$2',$content);
 		$content = preg_replace('|(<h[0-9].*?>)(.*?)(</h[0-9]>)|is','$2',$content);
 		$content = preg_replace('|<\/?.*?>|is','',$content);
 		$content = preg_replace('|\[.*?\].*?\[/.*?\]|is','',$content);
 		$content = preg_replace('|\[.*?\]|is',' ',$content);
-	
-		//suppresion des notes dans les articles
+
+		//Notes
 		$content = preg_replace('|\(\(.+\)\)|is',' ',$content);
 	
-	
-		//Suppression des retours chariots:
-		if($nl2br){
+		if( $nl2br ){
 			$content = nl2br($content);
 		}else{
 			$content = preg_replace('|[\r\n]|is','',$content);
 		}
 	
-		if(strlen($content) <= $limit) {
+		if( strlen($content) <= $limit ) {
+			
 			$new_content = $content;
-			if( !$no_cut_string_if_shorter_than_limit )
+			if( !$no_cut_string_if_shorter_than_limit ){
 				$new_content .= $cutString;
-		} else {
+			}
+			
+		}else{
 	
 			$str = substr($content,0,$limit);
 			$new_content =  substr($str,0,strrpos($str,' '));
 	
-			//exceptions
-			//retire le guillemet probl�matique � la fin si il y en a un
 			$quote = substr($new_content,-5);
 			if(preg_match('|["�]|is', $quote)) {
 				$new_content = substr_replace($new_content,'',-5);
 			}
-			// the last character of $content
+
 			$last = substr($new_content,-1,1);
 	
 			if(!preg_match("|[a-z0-9���������]|i", $last)) {
@@ -82,7 +80,23 @@ class WppcComponentsUtils{
 	
 			$new_content = $new_content.$cutString;
 		}
+		
 		return $new_content;
+	}
+	
+	public static function get_unavailable_media_img(){
+		
+		$params = array(
+				'src' => get_bloginfo('wpurl') .'/wp-content/uploads/unavailable_media.png',
+				'width' => 604,
+				'height' => 332
+		);
+		
+		$params = apply_filters('wppc_unavailable_media_img',$params);
+		
+		$img = '<img class="unavailable" alt="'. __('Unavailable content') .'" src="'. $params['src'] .'" width="'. $params['width'] .'" height="'. $params['height'] .'" />';
+		
+		return $img;
 	}
 	
 }

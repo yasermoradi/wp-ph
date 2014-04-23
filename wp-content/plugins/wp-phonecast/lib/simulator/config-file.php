@@ -3,20 +3,21 @@ class WppcConfigFile{
 	
 	public static function hooks(){
 		add_action('init',array(__CLASS__,'rewrite_rules'));
-		add_action('template_redirect',array(__CLASS__,'template_redirect'));
+		add_action('template_redirect',array(__CLASS__,'template_redirect'),1);
 	}
 	
 	public static function rewrite_rules(){
 		add_rewrite_tag('%wppc_appli_file%','([^&]+)');
-		add_rewrite_rule('^wp-content/plugins/wp-phonecast/appli/(config\.js)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
-		add_rewrite_rule('^wp-content/plugins/wp-phonecast/appli/(config\.xml)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
+		$wp_content = str_replace(ABSPATH,'',WP_CONTENT_DIR);
+		add_rewrite_rule('^'. $wp_content .'/plugins/wp-phonecast/appli/(config\.js)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
+		add_rewrite_rule('^'. $wp_content .'/plugins/wp-phonecast/appli/(config\.xml)$', 'index.php?wppc_appli_file=$matches[1]', 'top');
 	}
 	
 	public static function template_redirect(){
 		global $wp_query;
-	
+		
 		if( isset($wp_query->query_vars['wppc_appli_file']) && !empty($wp_query->query_vars['wppc_appli_file']) ){
-				
+
 			if( !empty($_GET['wppc_app_id']) ){
 	
 				$app_id = esc_attr($_GET['wppc_app_id']); //can be ID or slug
@@ -25,6 +26,12 @@ class WppcConfigFile{
 				
 				if( !empty($app) ){
 					$app_id = $app->ID;
+					
+					$capability = apply_filters('wppc_private_simulation_capability','manage_options',$app_id);
+					
+					if( WppcApps::get_app_simulation_is_secured($app_id) && !current_user_can($capability) ){
+						wp_nonce_ays( $action );
+					}
 					
 					$file = $wp_query->query_vars['wppc_appli_file'];
 					switch($file){

@@ -174,11 +174,22 @@ class WppcApps{
 	
 	public static function inner_security_box($post,$current_box){
 		$secured = self::get_app_is_secured($post->ID);
+		$simulation_secured = self::get_app_simulation_is_secured($post->ID);
 		?>
 		<label><?php _e('Secured web services') ?></label> : <br/>
+		<span class="description"><?php _e("If activated, adds a security token to web services urls.") ?></span><br/>
 		<select name="wppc_app_secured">
 			<option value="1" <?php echo $secured ? 'selected="selected"' : '' ?>><?php _e('Yes') ?></option>
 			<option value="0" <?php echo !$secured ? 'selected="selected"' : '' ?>><?php _e('No') ?></option>
+		</select>
+		<br/><br/>
+		<label><?php _e('Private App simulation') ?></label> : <br/>
+		<span class="description"><?php _e('If activated, only connected users with right permissions can access the app simulation in web browser.<br/>
+		If deactivated, the app simulation is publicly available in any browser, including the config.js and config.xml files, that can contain sensitive data.') ?></span>
+		<br/>
+		<select name="wppc_app_simulation_secured">
+			<option value="1" <?php echo $simulation_secured ? 'selected="selected"' : '' ?>><?php _e('Private') ?></option>
+			<option value="0" <?php echo !$simulation_secured ? 'selected="selected"' : '' ?>><?php _e('Public') ?></option>
 		</select>
 		<?php
 	}
@@ -256,6 +267,10 @@ class WppcApps{
 	    
 	    if ( isset( $_POST['wppc_app_secured'] ) ) {
 	    	update_post_meta( $post_id, '_wppc_app_secured', sanitize_text_field( $_POST['wppc_app_secured'] ) );
+	    }
+	    
+	    if ( isset( $_POST['wppc_app_simulation_secured'] ) ) {
+	    	update_post_meta( $post_id, '_wppc_app_simulation_secured', sanitize_text_field( $_POST['wppc_app_simulation_secured'] ) );
 	    }
 	     
 	    
@@ -372,6 +387,12 @@ class WppcApps{
 	
 	public static function get_app_is_secured($post_id){
 		$secured_raw = get_post_meta($post_id,'_wppc_app_secured',true);
+		$secured_raw = $secured_raw === '' || $secured_raw === false ? 1 : $secured_raw;
+		return intval($secured_raw) == 1;
+	}
+	
+	public static function get_app_simulation_is_secured($post_id){
+		$secured_raw = get_post_meta($post_id,'_wppc_app_simulation_secured',true);
 		$secured_raw = $secured_raw === '' || $secured_raw === false ? 1 : $secured_raw;
 		return intval($secured_raw) == 1;
 	}
