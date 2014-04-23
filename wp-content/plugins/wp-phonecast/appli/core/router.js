@@ -12,7 +12,6 @@ define(function (require) {
  
         routes: {
             "": "default_route",
-            "posts-list-:id" : "archive",
             "single/:global/:id" : "single",
             "page-:id" : "page",
             "comments-:post_id" : "comments",

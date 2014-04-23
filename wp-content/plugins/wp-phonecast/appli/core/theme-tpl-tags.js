@@ -34,12 +34,28 @@ define(function (require,exports) {
     	  return App.getPreviousPageLink();
 	  };
 	  
-      themeTplTags.getPostLink = function(post_id){
+      themeTplTags.getPostLink = function(post_id,global){
     	  //TODO Check if the post exists in the posts global
-    	  //+ handle the case where we don't call this from an archive.
+
     	  var page_data = App.getCurrentPageData();
-    	  var global = page_data.global;
-    	  return '#single/'+ global +'/'+ post_id;
+    	  
+    	  var single_global = '';
+    	  if( global != undefined ){
+    		  single_global = global;
+    	  }else{
+    		  if( page_data.page_type == 'comments' ){
+    			  var previous_page_data = App.getPreviousPageData();
+    			  if( previous_page_data.page_type == 'single' ){
+    				  single_global = previous_page_data.global;
+    			  }
+    		  }else{
+    			  if( page_data.hasOwnProperty('global') && page_data.global != '' ){
+        			  single_global = page_data.global;
+        		  }
+    		  }
+    	  }
+    	 
+    	  return single_global != '' ? '#single/'+ single_global +'/'+ post_id : '';
       };
       
       themeTplTags.getCommentsLink = function(post_id){

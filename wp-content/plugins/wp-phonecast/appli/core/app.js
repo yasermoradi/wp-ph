@@ -14,7 +14,7 @@ define(function (require) {
           Config              = require('root/config'),
           Utils               = require('core/app-utils'),
           Hooks               = require('core/lib/hooks'),
-          sha256              = require('core/lib/sha256');
+          Sha256              = require('core/lib/sha256');
       
 	  var app = {};
 	  
@@ -236,7 +236,7 @@ define(function (require) {
 	    		  day = '0'+ day;
 	    	  }
 	    	  var date_str = year +'-'+ month +'-'+ day;
-	    	  var hash = sha256(key + app_slug + date_str);
+	    	  var hash = Sha256(key + app_slug + date_str);
 	    	  token = window.btoa(hash);
 		  }
 		  
