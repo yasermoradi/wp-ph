@@ -38,7 +38,7 @@ class WppcComponentTypePage extends WppcComponentType{
 		}
 		$post_data['content'] = $content;
 	
-		$post_data['excerpt'] = !empty($post->post_excerpt) ? $post->post_excerpt : WppcComponentsUtils::cut_content(200,$content);
+		$post_data['excerpt'] = WppcComponentsUtils::get_post_excerpt($post);
 	
 		$post_featured_img_id = get_post_thumbnail_id($post->ID);
 		if( !empty($post_featured_img_id) ){

@@ -37,57 +37,17 @@ class WppcComponentsUtils{
 		return $content;
 	}
 	
-	public static function cut_content($limit, $content, $no_cut_string_if_shorter_than_limit = false, $nl2br = false, $cutString = " ...") {
-	
-		$content = preg_replace('|(<a.*?>)(.*?)(</a>)|is','$2',$content);
-		$content = preg_replace('#<p(>| .*?>)(.*?)(</p>)#is','$2',$content);
-		$content = preg_replace('|(<h[0-9].*?>)(.*?)(</h[0-9]>)|is','$2',$content);
-		$content = preg_replace('|<\/?.*?>|is','',$content);
-		$content = preg_replace('|\[.*?\].*?\[/.*?\]|is','',$content);
-		$content = preg_replace('|\[.*?\]|is',' ',$content);
-
-		//Notes
-		$content = preg_replace('|\(\(.+\)\)|is',' ',$content);
-	
-		if( $nl2br ){
-			$content = nl2br($content);
-		}else{
-			$content = preg_replace('|[\r\n]|is','',$content);
-		}
-	
-		if( strlen($content) <= $limit ) {
-			
-			$new_content = $content;
-			if( !$no_cut_string_if_shorter_than_limit ){
-				$new_content .= $cutString;
-			}
-			
-		}else{
-	
-			$str = substr($content,0,$limit);
-			$new_content =  substr($str,0,strrpos($str,' '));
-	
-			$quote = substr($new_content,-5);
-			if(preg_match('|["�]|is', $quote)) {
-				$new_content = substr_replace($new_content,'',-5);
-			}
-
-			$last = substr($new_content,-1,1);
-	
-			if(!preg_match("|[a-z0-9���������]|i", $last)) {
-				$new_content = substr_replace($new_content, "", -1);
-			}
-	
-			$new_content = $new_content.$cutString;
-		}
-		
-		return $new_content;
+	public static function get_post_excerpt($post){
+		add_filter('excerpt_length',array('WppcComponentsUtilsHooksCallbacks','excerpt_length'));
+		add_filter('excerpt_more',array('WppcComponentsUtilsHooksCallbacks','excerpt_more'));
+		$post_excerpt = apply_filters('get_the_excerpt', $post->post_excerpt);
+		return apply_filters('wppc_post_excerpt',$post_excerpt,$post);
 	}
 	
 	public static function get_unavailable_media_img(){
 		
 		$params = array(
-				'src' => get_bloginfo('wpurl') .'/wp-content/uploads/unavailable_media.png',
+				'src' => get_bloginfo('wpurl') .'/wp-content/uploads/wppc_unavailable_media.png',
 				'width' => 604,
 				'height' => 332
 		);
@@ -97,6 +57,20 @@ class WppcComponentsUtils{
 		$img = '<img class="unavailable" alt="'. __('Unavailable content') .'" src="'. $params['src'] .'" width="'. $params['width'] .'" height="'. $params['height'] .'" />';
 		
 		return $img;
+	}
+	
+}
+
+class WppcComponentsUtilsHooksCallbacks{
+	
+	public static function excerpt_more($default_wp_excerpt_more){
+		$excerpt_more = apply_filters('wppc_excerpt_more',' ...',$default_wp_excerpt_more);
+		return $excerpt_more;
+	}
+	
+	public static function excerpt_length($default_wp_excerpt_length){
+		$excerpt_length = apply_filters('wppc_excerpt_length',30,$default_wp_excerpt_length);
+		return $excerpt_length;
 	}
 	
 }
