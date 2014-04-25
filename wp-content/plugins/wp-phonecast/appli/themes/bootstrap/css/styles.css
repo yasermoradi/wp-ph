@@ -40,13 +40,17 @@ ul.media-list .comments{
 	margin-bottom: 60px; /* make room for back button */
 }
 
-#single img{
-	margin:1em 0;
-	text-align:center;
-}
-
 #single h1{
 	margin-top:0;
+}
+
+#single .wp-caption img, #single img{
+	width:100%;
+	height:auto;
+}
+
+#single .wp-caption img{
+	margin-bottom:5px;
 }
 
 #post-comments-list .media-body p{
