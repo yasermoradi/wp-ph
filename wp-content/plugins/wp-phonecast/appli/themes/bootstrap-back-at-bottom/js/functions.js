@@ -42,6 +42,7 @@ define(['jquery','core/theme-app','theme/js/bootstrap.min'],function($,App){
 	
 	//Allow to click anywhere on li to go to post detail :
 	$('#container').on('click','li.media',function(e){
+		e.preventDefault();
 		var navigate_to = $('a',this).attr('href');
 		App.navigate(navigate_to);
 	});
