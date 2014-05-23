@@ -15,14 +15,24 @@ class WpakNavigationBoSettings{
 	public static function admin_enqueue_scripts(){
 		global $pagenow, $typenow;
 		if( ($pagenow == 'post.php' || $pagenow == 'post-new.php') && $typenow == 'wpak_apps' ){
-			wp_enqueue_script('wpak_navigation_bo_settings_js',plugins_url('lib/navigation/navigation-bo-settings.js', dirname(dirname(__FILE__))),array('jquery','jquery-ui-sortable'),WpakAppKit::resources_version);
+			global $post;
+			wp_enqueue_script('wpak_navigation_bo_settings_js',plugins_url('lib/navigation/navigation-bo-settings.js', dirname(dirname(__FILE__))),array('jquery','jquery-ui-sortable'),WpAppKit::resources_version);
+			wp_localize_script('wpak_navigation_bo_settings_js', 'wpak_navigation', array(
+				'post_id'=>$post->ID,
+				'nonce'=>wp_create_nonce('wpak-navigation-data-'. $post->ID),
+				'messages'=>array(
+					'confirm_delete' => __('Deleting a navigation item will remove it from all existing instances of your app (even those already built and running on real phones). Are you sure you want to remove this item from your app navigation?',WpAppKit::i18n_domain),
+					'confirm_edit' => __('Modifying a navigation item will affect it on all existing instances of your app (even those already built and running on real phones). Are you sure you want to modify this navigation item?',WpAppKit::i18n_domain),
+					'confirm_add' => __('Adding a navigation item will add it on all existing instances of your app (even those already built and running on real phones). Are you sure you want to add this navigation item?',WpAppKit::i18n_domain),
+				 )
+			));
 		}
 	}
 	
 	public static function add_meta_boxes(){
 		add_meta_box(
 			'wpak_app_navigation',
-			__('App navigation'),
+			__('App navigation',WpAppKit::i18n_domain),
 			array(__CLASS__,'inner_components_box'),
 			'wpak_apps',
 			'normal',
@@ -34,19 +44,19 @@ class WpakNavigationBoSettings{
 		$nav_items = WpakNavigationItemsStorage::get_navigation_items($post->ID);
 		?>
 		<div id="navigation-wrapper">
-			<a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add new component to navigation') ?></a>
+			<a href="#" class="add-new-h2" id="add-new-item"><?php _e('Add new component to navigation',WpAppKit::i18n_domain) ?></a>
 			
 			<div id="navigation-feedback" style="display:none"></div>
 			
 			<div id="new-item-form" style="display:none">
-				<h4><?php _e('New navigation item') ?></h4>
+				<h4><?php _e('New navigation item',WpAppKit::i18n_domain) ?></h4>
 				<?php self::echo_item_form($post->ID) ?>
 			</div>
 			
 			<table class="wp-list-table widefat fixed" id="navigation-items-table" data-post-id="<?php echo $post->ID ?>">
 				<thead>
 					<tr>
-						<th><?php _e('Navigation components') ?></th>
+						<th><?php _e('Navigation components',WpAppKit::i18n_domain) ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -56,7 +66,7 @@ class WpakNavigationBoSettings{
 						<?php echo self::get_navigation_row($post->ID,$i++,$nav_item_id,$nav_item) ?>
 					<?php endforeach ?>
 				<?php else: ?>
-					<tr class="no-component-yet"><td><?php _e('No navigation item yet!') ?></td></tr>
+					<tr class="no-component-yet"><td><?php _e('No navigation item yet!',WpAppKit::i18n_domain) ?></td></tr>
 				<?php endif ?>
 				</tbody>
 			</table>
@@ -69,6 +79,7 @@ class WpakNavigationBoSettings{
 				.ui-sortable-helper{ width:100%; background:#fff; }
 				.ui-state-default{ cursor:move }
 				#navigation-wrapper #components-feedback{ padding:1em; margin:5px }
+				#navigation-feedback { margin-top:15px; margin-bottom:17px; padding-top:12px; padding-bottom:12px; }
 			</style>
 		</div>
 		<?php 
@@ -85,7 +96,7 @@ class WpakNavigationBoSettings{
 					<?php echo $component->label ?> (<?php echo $component->slug ?>)
 					<input type="hidden" id="position-<?php echo $nav_item_id ?>" name="positions[<?php echo $nav_item_id ?>]" value="<?php echo $nav_item->position ?>" />
 					<div class="row-actions">
-						<span class="trash"><a class="submitdelete delete_navigation_item" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $nav_item_id ?>"><?php _e('Delete')?></a></span>
+						<span class="trash"><a class="submitdelete delete_navigation_item" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $nav_item_id ?>"><?php _e('Delete',WpAppKit::i18n_domain)?></a></span>
 					</div>
 				</td>
 			</tr>
@@ -119,7 +130,7 @@ class WpakNavigationBoSettings{
 				<table class="form-table">
 					<tr valign="top">
 						<?php if( !empty($components) ): ?>
-							<th scope="row"><?php _e('Component') ?></th>
+							<th scope="row"><?php _e('Component',WpAppKit::i18n_domain) ?></th>
 					        <td>
 					        	<select name="component_id">
 					        		<?php foreach($components as $component_id => $component): ?>
@@ -129,7 +140,7 @@ class WpakNavigationBoSettings{
 					        </td>
 					     <?php else: ?>
 					     	<td>
-				        		<?php _e('All components are already in navigation!') ?>
+				        		<?php _e('All components are already in navigation!',WpAppKit::i18n_domain) ?>
 				        	</td>
 				        <?php endif ?>
 				    </tr>
@@ -137,26 +148,30 @@ class WpakNavigationBoSettings{
 				<input type="hidden" name="position" value="0" />
 				<input type="hidden" name="navigation_post_id" value="<?php echo $post_id ?>" />
 				<p class="submit">
-					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" id="cancel-new-item"><?php _e('Cancel') ?></a>&nbsp;
+					<a class="button-secondary alignleft cancel" title="<?php _e('Cancel',WpAppKit::i18n_domain) ?>" href="#" id="cancel-new-item"><?php _e('Cancel',WpAppKit::i18n_domain) ?></a>&nbsp;
 					<?php if( !empty($components) ): ?>
-						<a class="button button-primary navigation-form-submit" data-id="<?php echo $navigation_item_id ?>"><?php _e('Add component to navigation') ?></a>
+						<a class="button button-primary navigation-form-submit" data-id="<?php echo $navigation_item_id ?>"><?php _e('Add component to navigation',WpAppKit::i18n_domain) ?></a>
 					<?php endif ?>
 				</p>
 			</div>
 		<?php else: ?>
 			<div>
-				<?php _e('No component found!') ?> : <?php _e('Please create a component!') ?>
+				<?php _e('No component found!',WpAppKit::i18n_domain) ?> : <?php _e('Please create a component!',WpAppKit::i18n_domain) ?>
 			</div>
 		<?php endif ?>
 		<?php 
 	}
 	
 	public static function ajax_wpak_edit_navigation(){
-		//TODO : add nonce!
 		
 		$answer = array('ok' => 0, 'message' => '', 'type' => 'error', 'html' => '');
 		
-		//TODO : nonce!
+		if( empty($_POST['post_id'])
+				|| empty($_POST['nonce'])
+				|| !check_admin_referer('wpak-navigation-data-'. $_POST['post_id'],'nonce') ){
+			exit();
+		}
+		
 		$action = $_POST['wpak_action'];
 		$data = $_POST['data'];
 		
@@ -165,20 +180,22 @@ class WpakNavigationBoSettings{
 			$post_id = $data['navigation_post_id'];
 			
 			$nav_item_component_id = $data['component_id'];
-			$nav_item_position = !empty($data['position']) && is_numeric($data['position']) ? $data['position'] : 0;
+			
+			$new_item_position = WpakNavigationItemsStorage::get_nb_navigation_items($post_id) + 1;
+			$nav_item_position = !empty($data['position']) && is_numeric($data['position']) ? $data['position'] : $new_item_position;
 				
 			if( empty($nav_item_component_id) ){
-				$answer['message'] = __('You must choose a component!');
+				$answer['message'] = __('You must choose a component!',WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 				
 			if( !WpakComponentsStorage::component_exists($post_id,$nav_item_component_id) ){
-				$answer['message'] = __("This component doesn't exist!");
+				$answer['message'] = __("This component doesn't exist!",WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 			
 			if( WpakNavigationItemsStorage::navigation_item_exists_by_component($post_id,$nav_item_component_id) ){
-				$answer['message'] = __('This component is already in navigation!');
+				$answer['message'] = __('This component is already in navigation!',WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 				
@@ -189,7 +206,7 @@ class WpakNavigationBoSettings{
 				
 			$answer['ok'] = 1;
 			$answer['type'] = 'updated';
-			$answer['message'] = __('New navigation item created successfuly');
+			$answer['message'] = __('New navigation item created successfuly',WpAppKit::i18n_domain);
 			
 			self::exit_sending_json($answer);
 			
@@ -199,14 +216,14 @@ class WpakNavigationBoSettings{
 			$post_id = $data['post_id'];
 			if( WpakNavigationItemsStorage::navigation_item_exists($post_id,$nav_item_id) ){
 				if( !WpakNavigationItemsStorage::delete_navigation_item($post_id,$nav_item_id) ){
-					$answer['message'] = __('Could not delete navigation item');
+					$answer['message'] = __('Could not delete navigation item',WpAppKit::i18n_domain);
 				}else{
 					$answer['ok'] = 1;
 					$answer['type'] = 'updated';
-					$answer['message'] = __('Navigation item deleted successfuly');
+					$answer['message'] = __('Navigation item deleted successfuly',WpAppKit::i18n_domain);
 				}
 			}else{
-				$answer['message'] = __('Navigation item to delete not found');
+				$answer['message'] = __('Navigation item to delete not found',WpAppKit::i18n_domain);
 			}
 			self::exit_sending_json($answer);
 			
@@ -214,7 +231,7 @@ class WpakNavigationBoSettings{
 
 			if( !empty($data['positions']) && is_array($data['positions']) ){
 				WpakNavigationItemsStorage::update_items_positions($data['post_id'],$data['positions']);
-				$answer['message'] = __('Navigation order updated successfuly');
+				$answer['message'] = __('Navigation order updated successfuly',WpAppKit::i18n_domain);
 				$answer['ok'] = 1;
 				$answer['type'] = 'updated';
 			}

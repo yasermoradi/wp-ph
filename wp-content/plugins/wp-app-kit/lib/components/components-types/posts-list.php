@@ -113,11 +113,12 @@ class WpakComponentTypePostsList extends WpakComponentType{
 			'excerpt' => '',
 			'featured_img' => '',
 			'author' => get_the_author_meta('nickname'), 
-			'url' => get_permalink(),
 			'nb_comments' => (int)get_comments_number()
 		);
 		
 		//Use the "wpak_posts_list_post_content" filter to format app posts content your own way :
+		//(To apply the default App Kit formating to the content and add only minor modifications to it, 
+		//use the "wpak_post_content_format" filter instead.)
 		$content = apply_filters('wpak_posts_list_post_content','',$post);
 		if( empty($content) ){
 			$content = WpakComponentsUtils::get_formated_content();
@@ -134,7 +135,9 @@ class WpakComponentTypePostsList extends WpakComponentType{
 			$post_data['featured_img']['height'] = $featured_img_src[2];
 		}
 		
-		$post_data = apply_filters('wpak_posts_list_post_data',$post_data,$post);
+		//To customize post data sent to the app (for example add a post meta to the default post data), 
+		//use this "wpak_post_data" filter :
+		$post_data = apply_filters('wpak_post_data',$post_data,$post);
 		
 		return (object)$post_data;
 	}
@@ -154,7 +157,7 @@ class WpakComponentTypePostsList extends WpakComponentType{
 			}
 		}else{
 			$options = array(
-				'hook' => array('label'=>__('Hook'),'value'=>$component->options['hook']),
+				'hook' => array('label'=>__('Hook',WpAppKit::i18n_domain),'value'=>$component->options['hook']),
 			);
 		}
 		return $options;
@@ -183,13 +186,13 @@ class WpakComponentTypePostsList extends WpakComponentType{
 		
 		?>
 		<div class="component-params">
-			<label><?php _e('Post type') ?> : </label>
+			<label><?php _e('Post type',WpAppKit::i18n_domain) ?> : </label>
 			<select name="post-type" class="posts-list-post-type">
 				<?php foreach($post_types as $post_type => $post_type_object): ?>
 					<?php $selected = $post_type == $current_post_type ? 'selected="selected"' : '' ?>
 					<option value="<?php echo $post_type ?>" <?php echo $selected ?>><?php echo $post_type_object->labels->name ?></option>
 				<?php endforeach ?>
-				<option value="custom" <?php echo 'custom' == $current_post_type ? 'selected="selected"' : '' ?>><?php _e('Custom, using hooks') ?></option>
+				<option value="custom" <?php echo 'custom' == $current_post_type ? 'selected="selected"' : '' ?>><?php _e('Custom, using hooks',WpAppKit::i18n_domain) ?></option>
 			</select>
 		</div>
 		
@@ -242,7 +245,7 @@ class WpakComponentTypePostsList extends WpakComponentType{
 				$first_taxonomy = reset($taxonomies);
 				$current_taxonomy = empty($current_taxonomy) ? $first_taxonomy : $current_taxonomy;
 			?>
-			<label><?php _e('Taxonomy') ?> : </label>
+			<label><?php _e('Taxonomy',WpAppKit::i18n_domain) ?> : </label>
 			<?php if( !empty($taxonomies) ): ?>
 				<select name="taxonomy" class="posts-list-taxonomies">
 					<?php foreach($taxonomies as $taxonomy_slug): ?>
@@ -265,13 +268,13 @@ class WpakComponentTypePostsList extends WpakComponentType{
 						<?php endforeach ?>
 					</select>
 				<?php else: ?>
-					<?php echo sprintf(__('No %s found'),$taxonomy_obj->labels->name); ?>
+					<?php echo sprintf(__('No %s found',WpAppKit::i18n_domain),$taxonomy_obj->labels->name); ?>
 				<?php endif ?>
 			<?php else: ?>
-				<?php echo sprintf(__('No taxonomy found for post type %s'),$current_post_type); ?>
+				<?php echo sprintf(__('No taxonomy found for post type %s',WpAppKit::i18n_domain),$current_post_type); ?>
 			<?php endif ?>
 		<?php else: //Custom posts list?>
-			<label><?php _e('Hook name') ?></label> : <input type="text" name="hook" value="<?php echo $current_hook ?>" />
+			<label><?php _e('Hook name',WpAppKit::i18n_domain) ?></label> : <input type="text" name="hook" value="<?php echo $current_hook ?>" />
 		<?php endif ?>
 		<?php
 	}
@@ -287,4 +290,4 @@ class WpakComponentTypePostsList extends WpakComponentType{
 	
 }
 
-WpakComponentsTypes::register_component_type('posts-list', array('label'=> __('Posts list')));
+WpakComponentsTypes::register_component_type('posts-list', array('label'=> __('Posts list',WpAppKit::i18n_domain)));

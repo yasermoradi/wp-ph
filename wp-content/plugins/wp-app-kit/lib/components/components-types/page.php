@@ -21,17 +21,19 @@ class WpakComponentTypePage extends WpakComponentType{
 	
 		$post_data = array(
 				'id' => $post->ID,
+				'post_type' => $post->post_type,
 				'date' => strtotime($post->post_date),
 				'title' => $post->post_title,
 				'content' => '',
 				'excerpt' => '',
 				'featured-img' => '',
-				'author' => '',
-				'url' => get_permalink(),
+				'author' => get_the_author_meta('nickname'),
 				'nb_comments' => (int)get_comments_number()
 		);
 	
 		//Use the "wpak_posts_list_post_content" filter to format app pages content your own way :
+		//(To apply the default App Kit formating to the content and add only minor modifications to it, 
+		//use the "wpak_post_content_format" filter instead.)
 		$content = apply_filters('wpak_page_content','',$post);
 		if( empty($content) ){
 			$content = WpakComponentsUtils::get_formated_content();
@@ -46,6 +48,8 @@ class WpakComponentTypePage extends WpakComponentType{
 			$post_data['featured_img']['src'] = $featured_img_src[0];
 		}
 	
+		//To customize page data sent to the app (for example add a page meta to the default page data),
+		//use this "wpak_page_data" filter :
 		$post_data = apply_filters('wpak_page_data',$post_data,$post);
 	
 		return (object)$post_data;
@@ -75,7 +79,7 @@ class WpakComponentTypePage extends WpakComponentType{
 	
 	public function get_options_to_display($component){
 		$page = get_post($component->options['page']);
-		$page_title = !empty($page) ? $page->post_title .' (ID='. $page->ID .')' : __('Page not found');
+		$page_title = !empty($page) ? $page->post_title .' (ID='. $page->ID .')' : __('Page not found',WpAppKit::i18n_domain);
 		$options = array(
 				'page' => array('label'=>__('Page'),'value'=>$page_title),
 		);
@@ -93,7 +97,7 @@ class WpakComponentTypePage extends WpakComponentType{
 		}
 		?>
 		<div>
-			<label><?php _e('Page') ?> : </label>
+			<label><?php _e('Page',WpAppKit::i18n_domain) ?> : </label>
 			<select name="page_id" class="page-pages">
 				<?php foreach($pages as $page): ?>
 					<?php $selected = $page->ID == $current_page ? 'selected="selected"' : '' ?>
@@ -118,4 +122,4 @@ class WpakComponentTypePage extends WpakComponentType{
 	
 }
 
-WpakComponentsTypes::register_component_type('page', array('label'=> __('Wordpress page')));
+WpakComponentsTypes::register_component_type('page', array('label'=> __('Wordpress page',WpAppKit::i18n_domain)));

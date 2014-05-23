@@ -9,7 +9,7 @@ class WpakThemesBoSettings{
 	public static function add_meta_boxes(){
 		add_meta_box(
 			'wpak_app_theme',
-			__('Theme'),
+			__('Theme',WpAppKit::i18n_domain),
 			array(__CLASS__,'inner_main_infos_box'),
 			'wpak_apps',
 			'normal',
@@ -22,13 +22,15 @@ class WpakThemesBoSettings{
 		$current_theme = WpakThemesStorage::get_current_theme($post->ID);
 		?>
 		
-		<label><?php _e('Choose theme') ?> : </label>
+		<label><?php _e('Choose theme',WpAppKit::i18n_domain) ?> : </label>
 		<select name="wpak_app_theme_choice">
 			<?php foreach($available_themes as $theme): ?>
 				<?php $selected = $theme == $current_theme ? 'selected="selected"' : '' ?>
 				<option value="<?php echo $theme ?>" <?php echo $selected ?>><?php echo ucfirst($theme)?> </option>
 			<?php endforeach ?>
 		</select>
+		
+		<?php wp_nonce_field('wpak-theme-data-'. $post->ID,'wpak-nonce-theme-data') ?>
 		
 		<?php
 	}
@@ -47,6 +49,10 @@ class WpakThemesBoSettings{
 			return;
 		}
 	
+		if( !check_admin_referer('wpak-theme-data-'. $post_id, 'wpak-nonce-theme-data') ){
+			return;
+		}
+		
 		if ( isset( $_POST['wpak_app_theme_choice'] ) ) {
 			WpakThemesStorage::set_current_theme($post_id,$_POST['wpak_app_theme_choice']);
 		}

@@ -14,14 +14,24 @@ class WpakComponentsBoSettings{
 	public static function admin_enqueue_scripts(){
 		global $pagenow, $typenow;
 		if( ($pagenow == 'post.php' || $pagenow == 'post-new.php') && $typenow == 'wpak_apps' ){
-			wp_enqueue_script('wpak_components_bo_settings_js',plugins_url('lib/components/components-bo-settings.js', dirname(dirname(__FILE__))),array('jquery'),WpakAppKit::resources_version);
+			global $post;
+			wp_enqueue_script('wpak_components_bo_settings_js',plugins_url('lib/components/components-bo-settings.js', dirname(dirname(__FILE__))),array('jquery'),WpAppKit::resources_version);
+			wp_localize_script('wpak_components_bo_settings_js', 'wpak_components', array(
+				'post_id'=>$post->ID,
+				'nonce'=>wp_create_nonce('wpak-component-data-'. $post->ID),
+				'messages'=>array(
+					'confirm_delete' => __('Deleting a component will remove it from all existing instances of your app (even those already built and running on real phones). Are you sure you want to delete this component?',WpAppKit::i18n_domain),
+					'confirm_edit' => __('Modifying a component will affect it on all existing instances of your app (even those already built and running on real phones). Are you sure you want to modify this component?',WpAppKit::i18n_domain),
+					'confirm_add' => __('Creating a component will create it on all existing instances of your app (even those already built and running on real phones). Are you sure you want to create this component?',WpAppKit::i18n_domain),
+				 )
+			));
 		}
 	}
 	
 	public static function add_meta_boxes(){
 		add_meta_box(
 			'wpak_app_components',
-			__('App components'),
+			__('App components',WpAppKit::i18n_domain),
 			array(__CLASS__,'inner_components_box'),
 			'wpak_apps',
 			'normal',
@@ -40,17 +50,17 @@ class WpakComponentsBoSettings{
 			<div id="components-feedback" style="display:none"></div>
 			
 			<div id="new-component-form" style="display:none">
-				<h4><?php _e('New Component') ?></h4>
+				<h4><?php _e('New Component',WpAppKit::i18n_domain) ?></h4>
 				<?php self::echo_component_form($post->ID) ?>
 			</div>
 			
 			<table id="components-table" class="wp-list-table widefat fixed" >
 				<thead>
 					<tr>
-						<th><?php _e('Name') ?></th>
-						<th><?php _e('Slug') ?></th>
-						<th><?php _e('Type') ?></th>
-						<th><?php _e('Options') ?></th>
+						<th><?php _e('Name',WpAppKit::i18n_domain) ?></th>
+						<th><?php _e('Slug',WpAppKit::i18n_domain) ?></th>
+						<th><?php _e('Type',WpAppKit::i18n_domain) ?></th>
+						<th><?php _e('Options',WpAppKit::i18n_domain) ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -60,7 +70,7 @@ class WpakComponentsBoSettings{
 						<?php echo self::get_component_row($post->ID,$i++,$id,$component) ?>
 					<?php endforeach ?>
 				<?php else: ?>
-					<tr class="no-component-yet"><td colspan="4"><?php _e('No Component yet!') ?></td></tr>
+					<tr class="no-component-yet"><td colspan="4"><?php _e('No Component yet!',WpAppKit::i18n_domain) ?></td></tr>
 				<?php endif ?>
 				</tbody>
 			</table>
@@ -73,7 +83,7 @@ class WpakComponentsBoSettings{
 			#components-wrapper{ margin-top:1em }
 			#components-table{ margin-top:5px }
 			#new-component-form{ margin-bottom: 4em }
-			#components-wrapper #components-feedback{ padding:1em; margin:5px }
+			#components-wrapper #components-feedback{ margin-top:15px; margin-bottom:17px; padding-top:12px; padding-bottom:12px; }
 		</style>
 		
 		<?php
@@ -87,8 +97,8 @@ class WpakComponentsBoSettings{
 			<td>
 				<?php echo $component->label ?>
 				<div class="row-actions">
-					<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $component_id ?>"><?php _e('Edit') ?></a> | </span>
-					<span class="trash"><a class="submitdelete delete_component" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $component_id ?>"><?php _e('Delete')?></a></span>
+					<span class="inline hide-if-no-js"><a class="editinline" href="#" data-edit-id="<?php echo $component_id ?>"><?php _e('Edit',WpAppKit::i18n_domain) ?></a> | </span>
+					<span class="trash"><a class="submitdelete delete_component" href="#" data-post-id="<?php echo $post_id ?>" data-id="<?php echo $component_id ?>"><?php _e('Delete',WpAppKit::i18n_domain)?></a></span>
 				</div>
 			</td>
 			<td><?php echo $component->slug ?></td>
@@ -127,15 +137,17 @@ class WpakComponentsBoSettings{
 		<div id="component-form-<?php echo $component_id ?>" class="component-form">
 			<table class="form-table">
 				<tr valign="top">
-					<th scope="row"><?php _e('Component label') ?></th>
-			        <td><input type="text" name="component_label" value="<?php echo $component->label ?>" /></td>
+					<th scope="row"><?php _e('Component label',WpAppKit::i18n_domain) ?></th>
+			        <td><input class="can-reset" type="text" name="component_label" value="<?php echo $component->label ?>" /></td>
 			    </tr>
-			    <tr valign="top">
-					<th scope="row"><?php _e('Component slug') ?></th>
-			        <td><input type="text" name="component_slug" value="<?php echo $component->slug ?>" /></td>
-			    </tr>
+			    <?php if( $edit ): ?>
+				    <tr valign="top">
+						<th scope="row"><?php _e('Component slug',WpAppKit::i18n_domain) ?></th>
+				        <td><input class="can-reset" type="text" name="component_slug" value="<?php echo $component->slug ?>" /></td>
+				    </tr>
+			    <?php endif ?>
 		        <tr valign="top">
-		        	<th scope="row"><?php _e('Component type') ?></th>
+		        	<th scope="row"><?php _e('Component type',WpAppKit::i18n_domain) ?></th>
 		        	<td>
 		        		<select type="text" name="component_type" class="component-type">
 		        			<?php foreach($components_types as $type => $data): ?>
@@ -146,7 +158,7 @@ class WpakComponentsBoSettings{
 		        	</td>
 		        </tr>
 		        <tr valign="top">
-		        	<th scope="row"><?php _e('Component options') ?></th>
+		        	<th scope="row"><?php _e('Component options',WpAppKit::i18n_domain) ?></th>
 		        	<td class="component-options-target">
 		        		<?php WpakComponentsTypes::echo_form_fields($component->type,$edit ? $component : null) ?>
 		        	</td>
@@ -155,8 +167,8 @@ class WpakComponentsBoSettings{
 			<input type="hidden" name="component_id" value="<?php echo $component_id ?>"/>
 			<input type="hidden" name="component_post_id" value="<?php echo $post_id ?>" />
 			<p class="submit">
-				<a class="button-secondary alignleft cancel" title="<?php _e('Cancel') ?>" href="#" <?php echo !$edit ? 'id="cancel-new-component"' : '' ?>><?php _e('Cancel') ?></a>&nbsp;
-				<a class="button button-primary component-form-submit" data-id="<?php echo $component_id ?>"><?php echo $edit ? __('Save Changes') : 'Save new component'?></a>
+				<a class="button-secondary alignleft cancel" title="<?php _e('Cancel',WpAppKit::i18n_domain) ?>" href="#" <?php echo !$edit ? 'id="cancel-new-component"' : '' ?>><?php _e('Cancel',WpAppKit::i18n_domain) ?></a>&nbsp;
+				<a class="button button-primary component-form-submit" data-id="<?php echo $component_id ?>"><?php echo $edit ? __('Save Changes',WpAppKit::i18n_domain) : 'Save new component'?></a>
 			</p>
 		</div>
 		<?php 
@@ -164,7 +176,12 @@ class WpakComponentsBoSettings{
 	
 	public static function ajax_update_component_options(){
 		
-		//TODO : nonce!
+		if( empty($_POST['post_id'])
+			|| empty($_POST['nonce'])
+			|| !check_admin_referer('wpak-component-data-'. $_POST['post_id'],'nonce') ){
+			exit();
+		}
+		
 		$component_type = $_POST['component_type'];
 		$action = $_POST['wpak_action'];
 		$params = $_POST['params'];
@@ -175,8 +192,13 @@ class WpakComponentsBoSettings{
 	
 	public static function ajax_update_component_type(){
 	
-		//TODO : nonce!
 		$component_type = $_POST['component_type'];
+		
+		if( empty($_POST['post_id'])
+			|| empty($_POST['nonce']) 
+			|| !check_admin_referer('wpak-component-data-'. $_POST['post_id'],'nonce') ){
+			exit();
+		}
 		
 		WpakComponentsTypes::echo_form_fields($component_type);
 		exit();
@@ -186,7 +208,12 @@ class WpakComponentsBoSettings{
 	
 		$answer = array('ok' => 0, 'message' => '', 'type' => 'error', 'html' => '');
 
-		//TODO : nonce!
+		if( empty($_POST['post_id'])
+			|| empty($_POST['nonce']) 
+			|| !check_admin_referer('wpak-component-data-'. $_POST['post_id'],'nonce') ){
+			exit('bad nonce');
+		}
+		
 		$action = $_POST['wpak_action'];
 		$data = $_POST['data'];
 		
@@ -194,7 +221,7 @@ class WpakComponentsBoSettings{
 			
 			$post_id = $data['component_post_id'];
 			if( empty($post_id) ){
-				$answer['message'] = __("Application not found.");
+				$answer['message'] = __("Application not found.",WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 
@@ -202,29 +229,40 @@ class WpakComponentsBoSettings{
 			$edit_id = $edit ? intval($data['component_id']) : 0;
 		
 			$component_label = trim($data['component_label']);
-			$component_slug = trim($data['component_slug']);
 			$component_type = $data['component_type'];
-				
+			
 			if( empty($component_label) ){
-				$answer['message'] = __('You must provide a name for the component!');
+				$answer['message'] = __('You must provide a label for the component!',WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 			
+			if( is_numeric($component_label) ){
+				$answer['message'] = __("The component label can't be numeric.",WpAppKit::i18n_domain);
+				self::exit_sending_json($answer);
+			}
+			
+			$component_slug = $edit ? trim($data['component_slug']) : sanitize_title_with_dashes(remove_accents($component_label));
+			
 			if( empty($component_slug) ){
-				$answer['message'] = __("You must provide a slug for the component.");
+				$answer['message'] = __("You must provide a slug for the component.",WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 			
 			if( is_numeric($component_slug) ){
-				$answer['message'] = __("The component slug can't be numeric.");
+				$answer['message'] = __("The component slug can't be numeric.",WpAppKit::i18n_domain);
 				self::exit_sending_json($answer);
 			}
 		
-			if( !$edit ){
-				if( WpakComponentsStorage::component_exists($post_id,$component_slug) ){
-					$answer['message'] = sprintf(__('A component with the slug "%s" already exists!'),$component_slug);
-					self::exit_sending_json($answer);
-				}
+			if( WpakComponentsStorage::component_exists($post_id,$component_slug, $edit ? $edit_id : 0) ){
+				$i = 0;
+				do{
+					$component_index = intval(preg_replace('/.*-(\d+)$/','$1',$component_slug));
+					$component_index++;
+					$component_slug = preg_replace('/-(\d+)$/','',$component_slug) .'-'. $component_index;
+					if( $i++ > 100 ){
+						break;
+					}
+				}while(WpakComponentsStorage::component_exists($post_id,$component_slug, $edit ? $edit_id : 0));
 			}
 				
 			$component_options = WpakComponentsTypes::get_component_type_options_from_posted_form($component_type,$data);
@@ -237,12 +275,12 @@ class WpakComponentsBoSettings{
 			if( $edit ){
 				$answer['ok'] = 1;
 				$answer['type'] = 'updated';
-				$answer['message'] = sprintf(__('Component "%s" updated successfuly'),$component_label);
+				$answer['message'] = sprintf(__('Component "%s" updated successfuly',WpAppKit::i18n_domain),$component_label);
 				
 			}else{
 				$answer['ok'] = 1;
 				$answer['type'] = 'updated';
-				$answer['message'] = sprintf(__('Component "%s" created successfuly'),$component_label);
+				$answer['message'] = sprintf(__('Component "%s" created successfuly',WpAppKit::i18n_domain),$component_label);
 			}
 			
 			self::exit_sending_json($answer);
@@ -251,16 +289,20 @@ class WpakComponentsBoSettings{
 			$id = $data['component_id'];
 			$post_id = $data['post_id'];
 			if(  is_numeric($id) && is_numeric($post_id) ){
-				if( $component = WpakComponentsStorage::component_exists($post_id,$id) ){
-					if( !WpakComponentsStorage::delete_component($post_id,$id) ){
-						$answer['message'] = __('Could not delete component');
+				if( $component_id = WpakComponentsStorage::component_exists($post_id,$id) ){
+					if( WpakNavigationItemsStorage::navigation_item_exists_by_component($post_id,$component_id) ){
+						$answer['message'] = __('The component to delete is in the app navigation. Please remove the component from app navigation before deleting it.',WpAppKit::i18n_domain);
 					}else{
-						$answer['ok'] = 1;
-						$answer['type'] = 'updated';
-						$answer['message'] = __('Component deleted successfuly');
+						if( !WpakComponentsStorage::delete_component($post_id,$id) ){
+							$answer['message'] = __('Could not delete component',WpAppKit::i18n_domain);
+						}else{
+							$answer['ok'] = 1;
+							$answer['type'] = 'updated';
+							$answer['message'] = __('Component deleted successfuly',WpAppKit::i18n_domain);
+						}
 					}
 				}else{
-					$answer['message'] = __('Component to delete not found');
+					$answer['message'] = __('Component to delete not found',WpAppKit::i18n_domain);
 				}
 				
 			}
@@ -279,7 +321,6 @@ class WpakComponentsBoSettings{
 				ob_end_clean();
 			}
 		}
-		
 		header('Content-type: application/json');
 		echo json_encode($answer);
 		exit();
